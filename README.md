@@ -12,9 +12,9 @@ A commandline tool to quickly debug Jenkins piepline files
 ## Usage: 
 
         # Creates a new pipeline and tiggers job
-            $ jrp --job <job_name> --url <jenkins_url> --user <> --token <user_api_tokern>
+            $ jrp --job <job_name> --url <jenkins_url> --user <username> --token <user_api_tokern>
         # Deletes job
-            $ jrp delete --job <job_name> --url <jenkins_url> --user <> --token <user_api_tokern>
+            $ jrp delete --job <job_name> --url <jenkins_url> --user <username> --token <user_api_tokern>
 
 
 ## Features

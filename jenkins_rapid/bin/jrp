@@ -2,7 +2,7 @@
 """jenkins_debug_console
 
 Usage:
-    jrp --job <jobname>  --file <jenkinsfile> [--url <url>]  [--sleep <sleep_time>] [--encoding <type>] [--parameters <data>] [--wait-timer <time>]
+    jrp --job <jobname>  --file <jenkinsfile> [--url <url>] [--user <username>] [--token <api_token>] [--sleep <sleep_time>] [--parameters <data>] [--wait-timer <time>]
     jrp stop --job <jobname>  [--url <url>]
     jrp logs --job <jobname>  [--url <url>]
     jrp delete --job <jobname>  [--url <url>]
@@ -14,10 +14,11 @@ Examples:
 Options:
   -j, --job <jobname>               Job name.
   -f, --file <jenkinsfile>          Jenkins pipeline script file
-  -u, --url <url>                   Jenkins URL [default: http://localhost:8080]
+  -l, --url <url>                   Jenkins URL [default: http://localhost:8080]
+  -u, --user <username>             Jenkins user name
+  -p, --token <api_token>           Jenkins user token
   -s, --sleep <sleep_time>          Sleep time between polling requests [default: 2]
   -w, --wait-timer <time>           Wait time in queue [default: 100]
-  -e, --encoding <type>             Encoding type supports text or html [default: html]
   -p, --parameters <data>           Comma separated job parameters i.e. a=1,b=2
   -h, --help                        Show this screen and exit.
 """

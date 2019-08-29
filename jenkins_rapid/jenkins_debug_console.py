@@ -1,26 +1,5 @@
 #!/usr/bin/env python
-"""jenkins_debug_console
 
-Usage:
-    jenkins_debug_console --job <jobname>  --file <jenkinsfile> [--url <url>]  [--sleep <sleep_time>] [--encoding <type>] [--parameters <data>] [--wait-timer <time>]
-    jenkins_debug_console stop --job <jobname>  [--url <url>]
-    jenkins_debug_console logs --job <jobname>  [--url <url>]
-    jenkins_debug_console delete --job <jobname>  [--url <url>]
-    jenkins_debug_console -h
-
-Examples:
-    jenkins_debug_console  --job deploy_my_app -e text -u https://jenkins.example.com:8080 -p param1=1,param2=develop
-
-Options:
-  -j, --job <jobname>               Job name.
-  -f, --file <jenkinsfile>          Jenkins pipeline script file
-  -u, --url <url>                   Jenkins URL [default: http://localhost:8080]
-  -s, --sleep <sleep_time>          Sleep time between polling requests [default: 2]
-  -w, --wait-timer <time>           Wait time in queue [default: 100]
-  -e, --encoding <type>             Encoding type supports text or html [default: html]
-  -p, --parameters <data>           Comma separated job parameters i.e. a=1,b=2
-  -h, --help                        Show this screen and exit.
-"""
 import json,sys,os,traceback
 from time import sleep
 from docopt import docopt
@@ -40,13 +19,12 @@ class Job() :
         self.job = arguments['--job']
         self.timer = int(arguments['--wait-timer'])
         self.sleep = int(arguments['--sleep'])
-        self.encoding = arguments['--encoding']
         if os.environ.get('JENKINS_USER'):
             self.jenkins_user = os.environ['JENKINS_USER']
         else:
-            self.jenkins_user = arguments["jenkins_user"]
+            self.jenkins_user = arguments["--user"]
         if os.environ.get('JENKINS_PASSWORD'):
-            self.jenkins_password = os.environ['JENKINS_PASSWORD']
+            self.jenkins_password = os.environ['--token']
         else:
             self.jenkins_password = arguments["jenkins_password"]
         if arguments['--parameters']:
