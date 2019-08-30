@@ -24,9 +24,9 @@ class Job() :
         else:
             self.jenkins_user = arguments["--user"]
         if os.environ.get('JENKINS_PASSWORD'):
-            self.jenkins_password = os.environ['--token']
+            self.jenkins_password = os.environ['JENKINS_PASSWORD']
         else:
-            self.jenkins_password = arguments["jenkins_password"]
+            self.jenkins_password = arguments["--token"]
         if arguments['--parameters']:
             try:
                 self.parameters = dict(u.split("=") for u in arguments['--parameters'].split(","))
