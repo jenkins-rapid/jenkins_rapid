@@ -11,6 +11,7 @@ from pathlib import Path
 
 if (not os.environ.get('PYTHONHTTPSVERIFY', '') and
 getattr(ssl, '_create_unverified_context', None)):
+    os.environ['PYTHONHTTPSVERIFY'] = '0'
     ssl._create_default_https_context = ssl._create_unverified_context
 
 class Job() :
@@ -56,14 +57,11 @@ class Job() :
         if self.if_job_exits():
             # update_job()
             print('{:#^74}'.format('  Updating job:{}  '.format(self.job) ))
-
             print('##{:^70}##'.format('  1. Get existing config xml  '))    
             self.config_file_path = self.get_config_xml()
             print('##{:^70}##'.format(self.config_file_path))
-            
             print('##{:^70}##'.format('  2. Update xml  '))
             self.update_job_config()
-            
             print('##{:^70}##'.format('  3. Reconfigure/Upload config xml  '))
             self.upload_job_config()
             print('{:#^74}'.format('  Updating Finished  '))
@@ -76,18 +74,11 @@ class Job() :
             print('##{:^70}##'.format('  3. Create job with xml  '))
             self.create_new_job()
             print('{:#^74}'.format('  Finished creating job  '))
-        
-        
-        
         if self.if_job_exits():
             self.get_crumb()
             queue_url = self.trigger_build()
             self.job_number = self.waiting_for_job_to_start(queue_url)
             self.console_output(self.job_number)
-        #       show console log
-        
-        #  Stop running job
-        #  clean up job  
 
     def create_new_config_xml(self):
         # Create config folder 
@@ -163,58 +154,49 @@ class Job() :
         # Do a build request
         if self.parameters and self.brand_new_job is not True:
             build_url = self.url + "/job/" + self.job + "/buildWithParameters"
-            print "Triggering a build via post @ ", build_url
-            print "Params :", str(self.parameters)
+            print("Triggering a build via post @ ", build_url)
+            print("Params :", str(self.parameters))
             build_request = requests.post(build_url,params=self.parameters,auth=(self.jenkins_user, self.jenkins_password), verify=False,headers=headers)
         else:
             build_url = self.url + "/job/" + self.job + "/build"
-            print "Triggering a build via get @ ", build_url
+            print("Triggering a build via get @ ", build_url)
             build_request = requests.post(build_url,auth=(self.jenkins_user, self.jenkins_password), verify=False,headers=headers)
             self.brand_new_job = False
-    
-        # print build_request.text
-
         if build_request.status_code == 201:
             queue_url =  build_request.headers['location'] +  "api/json"
-            print "Build is queued @ ", queue_url
+            print("Build is queued @ ", queue_url)
         else:
-            print "Your build somehow failed"
-            print build_request.status_code
-            print build_request.url
-            # print build_request.text
+            print("Your build somehow failed")
+            print(build_request.status_code)
+            print(build_request.url)
             exit(1)
         return queue_url
 
     def waiting_for_job_to_start(self, queue_url):
         # Poll till we get job number
-        print ""
-        print "Starting polling for our job to start"
+        print("\nStarting polling for our job to start")
         timer = self.timer
-
         waiting_for_job = True 
         while waiting_for_job:
             queue_request = requests.get(queue_url, auth=(self.jenkins_user, self.jenkins_password), verify=False)
             if queue_request.json().get("why") != None:
-                print " . Waiting for job to start because :", queue_request.json().get("why")
+                print(" . Waiting for job to start because :", queue_request.json().get("why"))
                 timer -= 1
                 sleep(self.sleep)
             else:
                 waiting_for_job = False
                 job_number = queue_request.json().get("executable").get("number")  
-                print " Job is being build number: ", job_number  
-
+                print(" Job is being build number: ", job_number  )
             if timer == 0:
-                print " time out waiting for job to start"
+                print(" time out waiting for job to start")
                 exit(1)
-        # Return the job numner of the working
+        # Return the job numner 
         return job_number
 
     def console_output(self, job_number):
-        
         print('#'*74)
         print('##{:^70}##'.format("   Jenkins logs    "))
         print('#'*74)
-        
         headers = {
                 "Jenkins-Crumb":self.crumb,
                 "Content-type": "application/x-www-form-urlencoded; charset=UTF-8",
@@ -222,26 +204,21 @@ class Job() :
         }
         # Get job console till job stops
         job_url = self.url + "/job/" + self.job + "/" + str(job_number) + "/logText/progressiveText" 
-        print " Getting Console output @ ", job_url
+        print(" Getting Console output @ ", job_url)
         start_at = 0
         stream_open = True
         check_job_status = 0
-        
         console_requests_session = requests.session()
         console_requests_session.auth=(self.jenkins_user, self.jenkins_password)
-        
-        
         while stream_open:
             console_response = console_requests_session.post(job_url, data={'start': start_at }, verify=False,headers=headers)
             content_length = int(console_response.headers.get("Content-Length",-1))
             content_length = int("10")
-
             if console_response.status_code != 200:
-                print " Oppps we have an issue ... "
-                print console_response.content
-                print console_response.headers
+                print(" Oppps we have an issue ... ")
+                print(console_response.content)
+                print(console_response.headers)
                 exit(1)
-
             if content_length == 0:
                 sleep(self.sleep)
                 check_job_status +=1
@@ -249,14 +226,12 @@ class Job() :
                 check_job_status = 0
                 # Print to screen console
                 if len(console_response.content) > 0:
-                    print console_response.content
-                
+                    print(console_response.content)
                 try:
                     sleep(self.sleep)
                 except Exception:
                     pass
                 start_at = int(console_response.headers.get("X-Text-Size"))
-
             # No content for a while lets check if job is still running
             if check_job_status > 1:
                 job_status_url = self.url + "/job/" + self.job + "/" + str(job_number) + "/api/json"
@@ -264,12 +239,11 @@ class Job() :
                 job_bulding= job_requests.json().get("building")
                 if not job_bulding:
                     # We are done
-                    print "stream ended"
+                    print("stream ended")
                     stream_open = False
                 else:
                     # Job is still running
                     check_job_status = 0
-
     
     def stop_jobs(self):
         server = jenkins.Jenkins(self.url, username=self.jenkins_user, password=self.jenkins_password)
@@ -284,12 +258,9 @@ class Job() :
         return
     
     def exit_handler(self):
-           
         self.stop_jobs()
         
-
     def delete_job(self):
-        
         server = jenkins.Jenkins(self.url, username=self.jenkins_user, password=self.jenkins_password)
         if self.job.split('_')[0].lower() == 'tmp':
             server.delete_job(self.job)
@@ -304,23 +275,5 @@ class Job() :
 
 
 
-# if __name__ == '__main__':
-#     arguments = docopt(__doc__)
-#     myjob = Job(arguments)
-#     # print myjob.__dict__
-    
-#     if arguments['stop']:
-#         print "stopping jobs"
-#         myjob.stop_jobs()
-#     elif arguments['delete']:
-#         myjob.delete_job()
-#     else:
-#         try:
-#             myjob.main()
-#         except KeyboardInterrupt:
-#             print "Shutdown requested...exiting"
-#         except Exception:
-#             traceback.print_exc(file=sys.stdout)
-#         sys.exit(0)
-    
+
     
