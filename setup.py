@@ -6,7 +6,8 @@ import io
 install_requires = [
     'docopts',
     'python-jenkins',
-    'requests'
+    'requests',
+    'pathlib'
 ]
 
 test_requires = [

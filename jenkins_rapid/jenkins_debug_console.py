@@ -1,12 +1,17 @@
 #!/usr/bin/env python
 
-import json,sys,os,traceback
+import json,sys,os,traceback,ssl
 from time import sleep
 from docopt import docopt
 import jenkins
 import requests
 import xml.etree.ElementTree
 import atexit
+from pathlib import Path
+
+if (not os.environ.get('PYTHONHTTPSVERIFY', '') and
+getattr(ssl, '_create_unverified_context', None)):
+    ssl._create_default_https_context = ssl._create_unverified_context
 
 class Job() :
     def __init__(self,arguments):
@@ -37,7 +42,7 @@ class Job() :
             self.parameters = False            
         self.config_dir = "./.config/{}".format(self.job)
         self.config_file = "config.xml"
-        self.new_job_config_xml_template="new_job_template.xml"
+        self.new_job_config_xml_template="data/new_job_template.xml"
         self.job_number = None
         self.brand_new_job = False
 
@@ -89,7 +94,8 @@ class Job() :
         if not os.path.exists(self.config_dir):                                                                                                                                                                                    
             os.makedirs(self.config_dir)
         # Load config XML template
-        et = xml.etree.ElementTree.parse(self.new_job_config_xml_template)
+        new_job_config_xml_template_path = str(Path(__file__).parent / self.new_job_config_xml_template)
+        et = xml.etree.ElementTree.parse(new_job_config_xml_template_path)
         xml_script = et.getroot().find('definition').find('script')
         #  Copy pipeline script file into config xml template  
         with open(self.jenkinsfile, 'r') as pipeline_file:
