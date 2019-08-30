@@ -16,7 +16,7 @@ Options:
   -f, --file <jenkinsfile>          Jenkins pipeline script file
   -l, --url <url>                   Jenkins URL [default: http://localhost:8080]
   -u, --user <username>             Jenkins user name
-  -p, --token <api_token>           Jenkins user token
+  -t, --token <api_token>           Jenkins user token
   -s, --sleep <sleep_time>          Sleep time between polling requests [default: 2]
   -w, --wait-timer <time>           Wait time in queue [default: 100]
   -p, --parameters <data>           Comma separated job parameters i.e. a=1,b=2
