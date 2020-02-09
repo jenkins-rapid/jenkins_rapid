@@ -2,3 +2,4 @@
 *.og
 jenkins_rapid.egg-info
 .config
+workspace/

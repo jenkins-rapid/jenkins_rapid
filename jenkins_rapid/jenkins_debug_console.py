@@ -46,6 +46,8 @@ class Job() :
         self.new_job_config_xml_template="data/new_job_template.xml"
         self.job_number = None
         self.brand_new_job = False
+        self.finish_success_msg = 'Finished: SUCCESS'
+        self.finish_failure_msg = 'Finished: FAILURE'
 
     def if_job_exits(self):
         server = jenkins.Jenkins(self.url, username=self.jenkins_user, password=self.jenkins_password)
@@ -226,7 +228,11 @@ class Job() :
                 check_job_status = 0
                 # Print to screen console
                 if len(console_response.content) > 0:
-                    print(console_response.content)
+                    if self.finish_success_msg in console_response.content or self.finish_success_msg in console_response.content:
+                        print "Stopping jrp"
+                        sys.exit()
+                    else:
+                        print(console_response.content)
                 try:
                     sleep(self.sleep)
                 except Exception:
