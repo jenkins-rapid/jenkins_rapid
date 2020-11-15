@@ -53,7 +53,7 @@ class Job() :
             try:
                 self.parameters = dict(u.split("=") for u in arguments['--parameters'].split(","))
             except ValueError:
-                print "Your parameters should be in key=value format separated by ; for multi value i.e. x=1,b=2"
+                print ("Your parameters should be in key=value format separated by ; for multi value i.e. x=1,b=2")
                 exit(1)
         else:
             self.parameters = False            
@@ -69,7 +69,7 @@ class Job() :
 
     def main(self):
         atexit.register(self.exit_handler)
-        print self.if_job_exits()
+        print (self.if_job_exits())
         if self.if_job_exits():
             # update_job()
             print('{:#^74}'.format('  Updating job:{}  '.format(self.job) ))
@@ -106,7 +106,7 @@ class Job() :
         #  Stop running job
         #  clean up job  
 
-    def create_new_config_xml(self):
+    def create_new_config_xmlf(self):
         # Create config folder 
         if not os.path.exists(self.config_dir):                                                                                                                                                                                    
             os.makedirs(self.config_dir)
@@ -179,12 +179,12 @@ class Job() :
         # Do a build request
         if self.parameters and self.brand_new_job is not True:
             build_url = self.url + "/job/" + self.job + "/buildWithParameters"
-            print "Triggering a build via post @ ", build_url
-            print "Params :", str(self.parameters)
+            print ("Triggering a build via post @ ", build_url)
+            print ("Params :", str(self.parameters))
             build_request = requests.post(build_url,params=self.parameters,auth=(self.jenkins_user, self.jenkins_password), verify=False,headers=headers)
         else:
             build_url = self.url + "/job/" + self.job + "/build"
-            print "Triggering a build via get @ ", build_url
+            print ("Triggering a build via get @ ", build_url)
             build_request = requests.post(build_url,auth=(self.jenkins_user, self.jenkins_password), verify=False,headers=headers)
             self.brand_new_job = False
     
@@ -192,35 +192,35 @@ class Job() :
 
         if build_request.status_code == 201:
             queue_url =  build_request.headers['location'] +  "api/json"
-            print "Build is queued @ ", queue_url
+            print ("Build is queued @ ", queue_url)
         else:
-            print "Your build somehow failed"
-            print build_request.status_code
-            print build_request.url
-            # print build_request.text
+            print ("Your build somehow failed")
+            print (build_request.status_code)
+            print (build_request.url)
+            # print (build_request.text)
             exit(1)
         return queue_url
 
     def waiting_for_job_to_start(self, queue_url):
         # Poll till we get job number
-        print ""
-        print "Starting polling for our job to start"
+        print ("")
+        print ("Starting polling for our job to start")
         timer = self.timer
 
         waiting_for_job = True 
         while waiting_for_job:
             queue_request = requests.get(queue_url, auth=(self.jenkins_user, self.jenkins_password), verify=False)
             if queue_request.json().get("why") != None:
-                print " . Waiting for job to start because :", queue_request.json().get("why")
+                print (" . Waiting for job to start because :", queue_request.json().get("why"))
                 timer -= 1
                 sleep(self.sleep)
             else:
                 waiting_for_job = False
                 job_number = queue_request.json().get("executable").get("number")  
-                print " Job is being build number: ", job_number  
+                print (" Job is being build number: ", job_number  )
 
             if timer == 0:
-                print " time out waiting for job to start"
+                print (" time out waiting for job to start")
                 exit(1)
         # Return the job numner of the working
         return job_number
@@ -238,7 +238,7 @@ class Job() :
         }
         # Get job console till job stops
         job_url = self.url + "/job/" + self.job + "/" + str(job_number) + "/logText/progressiveText" 
-        print " Getting Console output @ ", job_url
+        print (" Getting Console output @ ", job_url)
         start_at = 0
         stream_open = True
         check_job_status = 0
@@ -253,9 +253,9 @@ class Job() :
             content_length = int("10")
 
             if console_response.status_code != 200:
-                print " Oppps we have an issue ... "
-                print console_response.content
-                print console_response.headers
+                print (" Oppps we have an issue ... ")
+                print (console_response.content)
+                print (console_response.headers)
                 exit(1)
 
             if content_length == 0:
@@ -265,7 +265,7 @@ class Job() :
                 check_job_status = 0
                 # Print to screen console
                 if len(console_response.content) > 0:
-                    print console_response.content
+                    print (console_response.content)
                 
                 try:
                     sleep(self.sleep)
@@ -280,7 +280,7 @@ class Job() :
                 job_bulding= job_requests.json().get("building")
                 if not job_bulding:
                     # We are done
-                    print "stream ended"
+                    print ("stream ended")
                     stream_open = False
                 else:
                     # Job is still running
@@ -312,8 +312,8 @@ class Job() :
         else:
             print("#"*74)
             print('##{:^70}##'.format(" UNABLE TO DELETE JOB   "))
-            print'##{30:70}##'.format((" Can only delete jobs with the prefix of 'Tmp_' or 'tmp_'    "))
-            print'##{:^70}##'.format((" Example : 'tmp_test_deployment_build_DEV'   "))
+            print('##{30:70}##'.format((" Can only delete jobs with the prefix of 'Tmp_' or 'tmp_'    ")))
+            print('##{:^70}##'.format((" Example : 'tmp_test_deployment_build_DEV'   ")))
             print("#"*74)
         return
 
