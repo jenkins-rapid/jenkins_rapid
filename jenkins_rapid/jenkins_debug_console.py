@@ -37,7 +37,7 @@ class Job() :
             try:
                 self.parameters = dict(u.split("=") for u in arguments['--parameters'].split(","))
             except ValueError:
-                print "Your parameters should be in key=value format separated by ; for multi value i.e. x=1,b=2"
+                print ("Your parameters should be in key=value format separated by ; for multi value i.e. x=1,b=2")
                 exit(1)
         else:
             self.parameters = False            
@@ -55,7 +55,7 @@ class Job() :
 
     def main(self):
         atexit.register(self.exit_handler)
-        print self.if_job_exits()
+        print (self.if_job_exits())
         if self.if_job_exits():
             # update_job()
             print('{:#^74}'.format('  Updating job:{}  '.format(self.job) ))
@@ -229,7 +229,7 @@ class Job() :
                 # Print to screen console
                 if len(console_response.content) > 0:
                     if self.finish_success_msg in console_response.content or self.finish_success_msg in console_response.content:
-                        print "Stopping jrp"
+                        print("Stopping jrp")
                         sys.exit()
                     else:
                         print(console_response.content)
@@ -273,8 +273,8 @@ class Job() :
         else:
             print("#"*74)
             print('##{:^70}##'.format(" UNABLE TO DELETE JOB   "))
-            print'##{30:70}##'.format((" Can only delete jobs with the prefix of 'Tmp_' or 'tmp_'    "))
-            print'##{:^70}##'.format((" Example : 'tmp_test_deployment_build_DEV'   "))
+            print('##{30:70}##'.format((" Can only delete jobs with the prefix of 'Tmp_' or 'tmp_'    ")))
+            print('##{:^70}##'.format((" Example : 'tmp_test_deployment_build_DEV'   ")))
             print("#"*74)
         return
 
