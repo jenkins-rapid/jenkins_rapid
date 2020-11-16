@@ -6,7 +6,8 @@ Usage:
     jrp stop --job <jobname>  [--url <url>]
     jrp logs --job <jobname>  [--url <url>]
     jrp delete --job <jobname>  [--url <url>]
-    jrp -h
+    jrp --version
+    jrp --help
 
 Examples:
     jrp  --job deploy_my_app -e text -u https://jenkins.example.com:8080 -p param1=1,param2=develop
@@ -21,11 +22,13 @@ Options:
   -w, --wait-timer <time>           Wait time in queue [default: 100]
   -p, --parameters <data>           Comma separated job parameters i.e. a=1,b=2
   -h, --help                        Show this screen and exit.
+  -v, --version                     Show version
 """
 
 from jenkins_rapid.jenkins_debug_console import Job
 from docopt import docopt
 import sys, traceback
+import pkg_resources
 
 
 
@@ -33,8 +36,9 @@ if __name__ == '__main__':
     arguments = docopt(__doc__)
     myjob = Job(arguments)
     
-    
-    if arguments['stop']:
+    if arguments["--version"]:
+        print(" \n Jenkins Rapid " + pkg_resources.get_distribution("jenkins_rapid").version + "\n")
+    elif arguments['stop']:
         print ("stopping jobs")
         myjob.stop_jobs()
     elif arguments['delete']:
