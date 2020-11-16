@@ -228,7 +228,7 @@ class Job() :
                 check_job_status = 0
                 # Print to screen console
                 if len(console_response.content) > 0:
-                    if self.finish_success_msg in str(console_response.content) or self.finish_success_msg in str(console_response.content):
+                    if self.finish_failure_msg in str(console_response.content) or self.finish_success_msg in str(console_response.content):
                         print("Stopping jrp")
                         sys.exit()
                     else:
