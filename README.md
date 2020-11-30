@@ -1,13 +1,13 @@
 
 # Jenkins Rapid 
 
-A commandline tool to quickly debug Jenkins piepline files
+A commandline tool to quickly develop/debug Jenkins piepline using jenkins files
 
 
 
 ## Install 
 
-        $ pip install git+https://git.nbnco.net.au/sec/jenkins-rapid
+        $ pip install jenkins-rapid
 
 ## Usage: 
 
@@ -30,6 +30,11 @@ A commandline tool to quickly debug Jenkins piepline files
 
 - Environment variables can be set for the following values for jenkins url and user credentials and will take presedence over commandline arguments 
 
-        JENKINS_URL
-        JENKINS_USER
-        JENKINS_PASSWORD
+        #	JENKINS_URL
+        #	JENKINS_USER
+        #	JENKINS_PASSWORD
+		#
+		Ex:
+		export JENKINS_URL=http://localhost:8080
+		export JENKINS_USER=admin
+        export JENKINS_PASSWORD=admin
