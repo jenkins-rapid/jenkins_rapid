@@ -1,6 +1,8 @@
 
 #
 
+LATEST_BUILD_VERSION = $(shell ls -latr ./dist/*.tar.gz  | tail -n 1  | awk '{print $$9}' | cut -d / -f 3)
+LATEST_BUILD_PATH = ./dist/$(LATEST_BUILD_VERSION)
 
 build_package:
 	python3.7 setup.py sdist 
@@ -8,7 +10,12 @@ build_package:
 
 upload_pypi:
 	# 	pip3.7 install --user --upgrade twine
-	twine upload dist/jenkins_rapid-*
+	twine upload $(LATEST_BUILD_PATH)  -u $(PYPI_USER) -p $(PYPI_PASS)
 
 dev-install: 
 	pip3 install -e ./  
+
+
+build-upload: build_package upload_pypi
+
+
