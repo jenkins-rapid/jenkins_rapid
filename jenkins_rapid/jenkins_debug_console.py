@@ -230,11 +230,13 @@ class Job() :
                 if len(console_response.content) > 0:
                     if self.finish_failure_msg in str(console_response.content):
                         sleep(15)
+                        print(console_response.content.decode("utf-8"))
                         print(self.finish_failure_msg)
                         print("Stopping jrp")
                         sys.exit()
                     elif self.finish_success_msg in str(console_response.content):
                         sleep(15)
+                        print(console_response.content.decode("utf-8"))
                         print(self.finish_success_msg)
                         print("Stopping jrp")
                         sys.exit()
