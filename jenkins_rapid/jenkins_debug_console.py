@@ -264,7 +264,7 @@ class Job() :
 
         print('\n\n')
         print('#'*74)
-        print('##{:^70}##'.format("   Jenkins logs    "))
+        print('##{:^70}##'.format("   {}: {}    "self.job,self.job_number))
         print('#'*74)
         headers = {
                 "Jenkins-Crumb":self.crumb,
@@ -300,14 +300,16 @@ class Job() :
                         stream_spinner.text="\n"
                         sleep(5)
                         print(console_response.content.decode("utf-8"))
-                        print(self.finish_failure_msg)
+                        print(self.finish_failure_msg + "😑")
+                        # print(self.finish_failure_msg)
                         print("Stopping jrp")
                         sys.exit()
                     elif self.finish_success_msg in str(console_response.content):
                         stream_spinner.text="\n"
                         sleep(5)
                         print(console_response.content.decode("utf-8"))
-                        print(self.finish_success_msg)
+                        print(self.finish_success_msg + "🥳🥳🔥💥⚡️🎇🎆🎉")
+                        # print(self.finish_success_msg )
                         print("Stopping jrp")
                         sys.exit()
                     else:
@@ -349,14 +351,11 @@ class Job() :
         
     def delete_job(self):
         server = jenkins.Jenkins(self.url, username=self.jenkins_user, password=self.jenkins_password)
-        if self.job.split('_')[0].lower() == 'tmp':
+        try:
             server.delete_job(self.job)
-        else:
-            print("#"*74)
-            print('##{:^70}##'.format(" UNABLE TO DELETE JOB   "))
-            print('##{30:70}##'.format((" Can only delete jobs with the prefix of 'Tmp_' or 'tmp_'    ")))
-            print('##{:^70}##'.format((" Example : 'tmp_test_deployment_build_DEV'   ")))
-            print("#"*74)
+        except Exception as e:
+            print("Job delete error: ", e)
+
         return
 
 
