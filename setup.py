@@ -6,7 +6,8 @@ import io
 install_requires = [
     'docopts',
     'python-jenkins',
-    'requests'
+    'requests',
+    'halo'
 ]
 
 test_requires = [
@@ -20,7 +21,7 @@ def long_description():
 
 
 setup(name='jenkins_rapid',
-      version='0.3.13',
+      version='0.3.14',
       description='A simple tool to rapidly create and debug jenkins pipelines',
       long_description=long_description(),
       long_description_content_type='text/markdown',

@@ -14,9 +14,11 @@ node('master'){
         sleep 3
     done
     echo "hello world3"
+    
+    ls /tmp/
+    
     sleep 10
 
 
-    
     '''
 }

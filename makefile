@@ -13,9 +13,13 @@ upload_pypi:
 	twine upload $(LATEST_BUILD_PATH)  -u $(PYPI_USER) -p $(PYPI_PASS)
 
 dev-install: 
-	pip3 install -e ./  
+	pip3 install -e ./ 
 
 
 build-upload: build_package upload_pypi
+
+
+run_jenkins_test:
+	docker run -p 8080:8080 -v /home/sid/code/super_tmp/jenkins_home/jenkins_home:/var/jenkins_home jenkins:nbn_telemetry
 
 
