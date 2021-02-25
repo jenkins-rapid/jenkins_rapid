@@ -62,47 +62,47 @@ class Job() :
         self.if_job_exits()
         if self.if_job_exits():
             self.spinner.text = "Job found"
-            sleep(0.2)    
+            sleep(0.05)    
             # update_job()
             # print('{:#^74}'.format('  Updating job:{}  '.format(self.job) ))
 
             # print('##{:^70}##'.format('  1. Get existing config xml  '))
             self.spinner.text = '  1. Get existing config xml  '    
-            sleep(0.2)    
+            sleep(0.05)    
             self.config_file_path = self.get_config_xml()
             # print('##{:^70}##'.format(self.config_file_path))
             self.spinner.text =self.config_file_path
-            sleep(0.2)    
+            sleep(0.05)    
             # print('##{:^70}##'.format('2. Update xml  '))
             self.spinner.text = '2. Update xml'    
-            sleep(0.2)    
+            sleep(0.05)    
             self.update_job_config()
             # print('##{:^70}##'.format('  3. Reconfigure/Upload config xml  '))
             self.spinner.text = '3. Reconfigure/Upload config xml'    
-            sleep(0.2)    
+            sleep(0.05)    
             self.upload_job_config()
             # print('{:#^74}'.format('  Updating Finished  '))
             self.spinner.text = 'Updating Finished  '    
-            sleep(0.2)    
+            sleep(0.05)    
         else:
             # print('{:#^74}'.format('  Creating job:{}  '.format(self.job) ))
             # create_job
             self.spinner.text = '  Creating job:{}  '.format(self.job)    
-            sleep(0.2)    
+            sleep(0.05)    
             # print('##{:^70}##'.format('  1. Use template xml  '))
             self.spinner.text = '1. Use template xml'    
-            sleep(0.2)    
+            sleep(0.05)    
             # print('##{:^70}##'.format('  2. Update template xml  '))
             self.spinner.text = '2. Update template xml'
-            sleep(0.2)    
+            sleep(0.05)    
             self.create_new_config_xml()
             # print('##{:^70}##'.format('  3. Create job with xml  '))
             self.spinner.text = '3. Create job with xml'
-            sleep(0.2)    
+            sleep(0.05)    
             self.create_new_job()
             # print('{:#^74}'.format('  Finished creating job  '))
             self.spinner.text = 'Finished creating job'
-            sleep(0.2)    
+            sleep(0.05)    
         if self.if_job_exits():
             self.get_crumb()
             queue_url = self.trigger_build()
@@ -127,12 +127,12 @@ class Job() :
         et.write(self.config_dir+"/"+self.config_file)
         # print('##{:70}##'.format(self.config_dir+"/"+self.config_file))
         self.spinner.text = self.config_dir+"/"+self.config_file
-        sleep(0.2)
+        sleep(0.05)
 
     def create_new_job(self):
         # print('##{:^70}##'.format('  Creating new Jenkins job  '))
         self.spinner.text = "Creating new Jenkins job"
-        sleep(0.2)
+        sleep(0.05)
 
         server = jenkins.Jenkins(self.url, username=self.jenkins_user, password=self.jenkins_password)
         with open(self.config_dir+"/"+self.config_file, 'r') as file:
@@ -146,7 +146,7 @@ class Job() :
         job_xml = server.get_job_config(self.job)
         # print('##{:^70}##'.format(self.config_file))
         self.spinner.text = self.config_file
-        sleep(0.2)
+        sleep(0.05)
 
         # Create config folder 
         if not os.path.exists(self.config_dir):                                                                                                                                                                                    
@@ -160,7 +160,7 @@ class Job() :
     def update_job_config(self):
         # print('##{:^70}##'.format('  Updating Config  '))
         self.spinner.text = "Updating Config"
-        sleep(0.2)
+        sleep(0.05)
         server = jenkins.Jenkins(self.url, username=self.jenkins_user, password=self.jenkins_password)
         et = xml.etree.ElementTree.parse(self.config_file_path)
         xml_script = et.getroot().find('definition').find('script')
@@ -170,20 +170,20 @@ class Job() :
         et.write(self.config_file_path)
         # print('##{:^70}##'.format('  Finished updating config  '))
         self.spinner.text = "Finished updating config"
-        sleep(0.2)
+        sleep(0.05)
 
     
     def upload_job_config(self):
         # print('##{:^70}##'.format('  Uploading Jenkins file and config  '))
         self.spinner.text = "Uploading Jenkins file and config"
-        sleep(0.2)
+        sleep(0.05)
         server = jenkins.Jenkins(self.url, username=self.jenkins_user, password=self.jenkins_password)
         with open(self.config_file_path, 'r') as file:
             xml_file = file.read()
         reconfigure_job_xml = server.reconfig_job(self.job,xml_file)
         # print('##{:^70}##'.format('  Finished uploading  '))
         self.spinner.text = "Finished uploading"
-        sleep(0.2)
+        sleep(0.05)
 
     def get_crumb(self):
         if self.url:
@@ -193,7 +193,7 @@ class Job() :
             self.crumb=response["crumb"]
             # print(response["crumb"])
             self.spinner.text = response["crumb"]
-            sleep(0.2) 
+            sleep(0.05) 
         else:
             print("Check parameters")
             print("url parameter is missing")
@@ -207,23 +207,23 @@ class Job() :
             build_url = self.url + "/job/" + self.job + "/buildWithParameters"
             # print("Triggering a build via post @ ", build_url)
             self.spinner.text = "Triggering a build via post @ "+ build_url
-            sleep(0.2)
+            sleep(0.05)
             # print("Params :", str(self.parameters))
             self.spinner.text = "Params :"+ str(self.parameters)
-            sleep(0.2)
+            sleep(0.05)
             build_request = requests.post(build_url,params=self.parameters,auth=(self.jenkins_user, self.jenkins_password), verify=False,headers=headers)
         else:
             build_url = self.url + "/job/" + self.job + "/build"
             # print("Triggering a build via get @ ", build_url)
             self.spinner.text = "Triggering a build via get @ "+ build_url
-            sleep(0.2)
+            sleep(0.05)
             build_request = requests.post(build_url,auth=(self.jenkins_user, self.jenkins_password), verify=False,headers=headers)
             self.brand_new_job = False
         if build_request.status_code == 201:
             queue_url =  build_request.headers['location'] +  "api/json"
             # print("Build is queued @ ", queue_url)
             self.spinner.text = "Build is queued @ " + queue_url
-            sleep(0.2)
+            sleep(0.05)
         else:
             print("Your build somehow failed")
             print(build_request.status_code)
@@ -235,7 +235,7 @@ class Job() :
         # Poll till we get job number
         # print("\nStarting polling for our job to start")
         self.spinner.text = "\nStarting polling for our job to start"
-        sleep(0.2)
+        sleep(0.05)
         timer = self.timer
         waiting_for_job = True 
         while waiting_for_job:
@@ -264,7 +264,7 @@ class Job() :
 
         print('\n\n')
         print('#'*74)
-        print('##{:^70}##'.format("   {}: {}    "self.job,self.job_number))
+        print('##{:^70}##'.format("  Started Job [ {} ] - Build # {}    " .format(self.job,self.job_number) ))
         print('#'*74)
         headers = {
                 "Jenkins-Crumb":self.crumb,
@@ -300,7 +300,7 @@ class Job() :
                         stream_spinner.text="\n"
                         sleep(5)
                         print(console_response.content.decode("utf-8"))
-                        print(self.finish_failure_msg + "😑")
+                        print(self.finish_failure_msg + "😑😑😑😑")
                         # print(self.finish_failure_msg)
                         print("Stopping jrp")
                         sys.exit()
@@ -308,7 +308,7 @@ class Job() :
                         stream_spinner.text="\n"
                         sleep(5)
                         print(console_response.content.decode("utf-8"))
-                        print(self.finish_success_msg + "🥳🥳🔥💥⚡️🎇🎆🎉")
+                        print(self.finish_success_msg + "🥳 🥳  🎉🎉🔥🔥💥💥⚡️⚡️")
                         # print(self.finish_success_msg )
                         print("Stopping jrp")
                         sys.exit()
@@ -334,7 +334,7 @@ class Job() :
                     check_job_status = 0
         stream_spinner.stop()
     
-    def stop_jobs(self):
+    def stop_jobs(self,):
         server = jenkins.Jenkins(self.url, username=self.jenkins_user, password=self.jenkins_password)
         # List running jobs
         if self.job_number is not None :
