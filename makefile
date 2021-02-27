@@ -13,15 +13,25 @@ PIP_PACKAGE = jenkins_rapid
 
 local-install: dev-install 
 	 
-test-build-pip-install: build_package test-pip-install
+test-build-pip-install: build_package test-pip-install test-jrp
 
-test-build-clean-pip-install: build_package pip-clean test-pip-install
+test-build-clean-pip-install: build_package pip-clean test-pip-install test-jrp
 
+test-jrp:
+	. $(VIRTUALENV_NAME)/bin/activate \
+		&&	jrp -v  
+
+	
 
 build-upload: build_package upload_pypi
 
 
-run_jenkins_test:
-	docker run -p 8080:8080 -v /home/sid/code/super_tmp/jenkins_home/jenkins_home:/var/jenkins_home jenkins:nbn_telemetry
+init-jenkins-test-container:
+	docker run -p 8080:8080 -v /home/sid/code/super_tmp/jenkins_home/jenkins_home:/var/jenkins_home jenkins/jenkins:lts 
+
+test-run:
+	. $(VIRTUALENV_NAME)/bin/activate \
+		&& cd ./test/pipelines \
+		&&	jrp -j test_jrp -f test_jenkinsfile  
 
 

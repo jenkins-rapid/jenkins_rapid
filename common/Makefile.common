@@ -1,0 +1,50 @@
+
+
+LATEST_BUILD_VERSION?=$(shell ls -latr ./dist/*.tar.gz  | tail -n 1  | awk '{print $$9}' | cut -d / -f 3)
+LATEST_BUILD_PATH?=./dist/$(LATEST_BUILD_VERSION)
+
+# Virtualenv vars 
+VIRTUALENV_NAME?=<virtualenv_name>
+VIRTUALENVWRAPPER_PYTHON?=<python_path>
+PIP_PACKAGE?=<pip_package_name>
+
+
+## PYPI details 
+PYPI_USER?=<setup-your-env-var-for-this>
+PYPI_PASS?=<setup-your-env-var-for-this>
+
+
+dev-install: 
+	pip3 install -e ./ 
+
+
+build_package:
+	python3.7 setup.py sdist 
+
+setup_twine:
+		pip3.7 install --user --upgrade twine
+
+upload_pypi:
+	twine upload $(LATEST_BUILD_PATH)  -u $(PYPI_USER) -p $(PYPI_PASS)
+
+virtual-env-setup:
+	python3 -m pip install virtualenv 
+	# Create virtual env 
+	python3 -m virtualenv $(VIRTUALENV_NAME)
+
+virtual-env-clean:
+	rm -drf  
+
+pip-clean:
+	. $(VIRTUALENV_NAME)/bin/activate \
+		&& pip3 install pip-autoremove \
+		&& pip-autoremove $(PIP_PACKAGE) -y || true
+
+test-pip-install:  
+		. $(VIRTUALENV_NAME)/bin/activate \
+			 && pip3 install $(LATEST_BUILD_PATH)\
+			 && pip3 list 
+
+generate_requirement:
+	. $(VIRTUALENV_NAME)/bin/activate \
+		&& pip3 freeze  > requirements.txt
