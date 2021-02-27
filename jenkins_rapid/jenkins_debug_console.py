@@ -264,7 +264,7 @@ class Job() :
 
         print('\n\n')
         print('#'*74)
-        print('##{:^70}##'.format("  Started Job [ {} ] - Build # {}    " .format(self.job,self.job_number) ))
+        print('##{:^70}##'.format("  Started Job [ {} ] - Build # {}    ".format(self.job,self.job_number) ))
         print('#'*74)
         headers = {
                 "Jenkins-Crumb":self.crumb,
