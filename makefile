@@ -1,19 +1,21 @@
 
-#
+include common/Makefile.common
+
 
 LATEST_BUILD_VERSION = $(shell ls -latr ./dist/*.tar.gz  | tail -n 1  | awk '{print $$9}' | cut -d / -f 3)
 LATEST_BUILD_PATH = ./dist/$(LATEST_BUILD_VERSION)
 
-build_package:
-	python3.7 setup.py sdist 
+# Virtualenv vars 
+VIRTUALENV_NAME = jenkins_rapid_virtual_env
+VIRTUALENVWRAPPER_PYTHON = $(shell which python3)
+PIP_PACKAGE = jenkins_rapid
 
 
-upload_pypi:
-	# 	pip3.7 install --user --upgrade twine
-	twine upload $(LATEST_BUILD_PATH)  -u $(PYPI_USER) -p $(PYPI_PASS)
+local-install: dev-install 
+	 
+test-build-pip-install: build_package test-pip-install
 
-dev-install: 
-	pip3 install -e ./ 
+test-build-clean-pip-install: build_package pip-clean test-pip-install
 
 
 build-upload: build_package upload_pypi
