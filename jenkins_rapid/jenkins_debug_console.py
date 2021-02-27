@@ -353,6 +353,7 @@ class Job() :
         server = jenkins.Jenkins(self.url, username=self.jenkins_user, password=self.jenkins_password)
         try:
             server.delete_job(self.job)
+            print("\n\n## {} job has been deleted [{}] ##\n\n".format(self.job,self.url))
         except Exception as e:
             print("Job delete error: ", e)
 
