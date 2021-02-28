@@ -1,24 +1,10 @@
 node('master'){
-    
-    
     sh '''
-    #!/bin/bash
-    
-    echo "hello world"
-    sleep 10
-    echo "hello world2"
-    sleep 10
-    for i in {0..10..2}
+    for i in $(seq 1 5)
     do
         echo "Welcome $i times"
         sleep 3
     done
-    echo "hello world3"
-    
-    ls /tmp/
-    
-    sleep 10
-
-
+    echo "End of welcome message"
     '''
 }
