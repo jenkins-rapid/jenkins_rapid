@@ -144,10 +144,8 @@ class Job() :
     def get_config_xml(self):
         server = jenkins.Jenkins(self.url, username=self.jenkins_user, password=self.jenkins_password)
         job_xml = server.get_job_config(self.job)
-        # print('##{:^70}##'.format(self.config_file))
         self.spinner.text = self.config_file
         sleep(0.05)
-
         # Create config folder 
         if not os.path.exists(self.config_dir):                                                                                                                                                                                    
             os.makedirs(self.config_dir)
@@ -158,7 +156,6 @@ class Job() :
         return config_file
 
     def update_job_config(self):
-        # print('##{:^70}##'.format('  Updating Config  '))
         self.spinner.text = "Updating Config"
         sleep(0.05)
         server = jenkins.Jenkins(self.url, username=self.jenkins_user, password=self.jenkins_password)
@@ -168,20 +165,17 @@ class Job() :
             xml_script.text = pipeline_file.read()
             
         et.write(self.config_file_path)
-        # print('##{:^70}##'.format('  Finished updating config  '))
         self.spinner.text = "Finished updating config"
         sleep(0.05)
 
     
     def upload_job_config(self):
-        # print('##{:^70}##'.format('  Uploading Jenkins file and config  '))
         self.spinner.text = "Uploading Jenkins file and config"
         sleep(0.05)
         server = jenkins.Jenkins(self.url, username=self.jenkins_user, password=self.jenkins_password)
         with open(self.config_file_path, 'r') as file:
             xml_file = file.read()
         reconfigure_job_xml = server.reconfig_job(self.job,xml_file)
-        # print('##{:^70}##'.format('  Finished uploading  '))
         self.spinner.text = "Finished uploading"
         sleep(0.05)
 
@@ -191,7 +185,6 @@ class Job() :
             r = requests.get(crumb_url,auth=(self.jenkins_user, self.jenkins_password), verify=False)
             response = r.json()
             self.crumb=response["crumb"]
-            # print(response["crumb"])
             self.spinner.text = response["crumb"]
             sleep(0.05) 
         else:
@@ -202,32 +195,30 @@ class Job() :
         headers = {
                 "Jenkins-Crumb":self.crumb
         }
-        # Do a build request
+        # Make a build request
         if self.parameters and self.brand_new_job is not True:
             build_url = self.url + "/job/" + self.job + "/buildWithParameters"
-            # print("Triggering a build via post @ ", build_url)
             self.spinner.text = "Triggering a build via post @ "+ build_url
             sleep(0.05)
-            # print("Params :", str(self.parameters))
             self.spinner.text = "Params :"+ str(self.parameters)
             sleep(0.05)
             build_request = requests.post(build_url,params=self.parameters,auth=(self.jenkins_user, self.jenkins_password), verify=False,headers=headers)
+
         else:
             build_url = self.url + "/job/" + self.job + "/build"
-            # print("Triggering a build via get @ ", build_url)
             self.spinner.text = "Triggering a build via get @ "+ build_url
             sleep(0.05)
             build_request = requests.post(build_url,auth=(self.jenkins_user, self.jenkins_password), verify=False,headers=headers)
             self.brand_new_job = False
         if build_request.status_code == 201:
             queue_url =  build_request.headers['location'] +  "api/json"
-            # print("Build is queued @ ", queue_url)
             self.spinner.text = "Build is queued @ " + queue_url
             sleep(0.05)
         else:
-            print("Your build somehow failed")
+            print("\n\nYour build somehow failed\n\n")
             print(build_request.status_code)
             print(build_request.url)
+            print(build_request.text)
             exit(1)
         return queue_url
 
