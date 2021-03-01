@@ -4,3 +4,6 @@ jenkins_rapid.egg-info
 .config
 workspace/
 dist/
+test/jenkins_home*
+test/xml*
+test/templ*
