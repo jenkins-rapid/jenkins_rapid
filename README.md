@@ -42,4 +42,21 @@ A commandline tool to quickly develop/debug Jenkins piepline using jenkinsfiles
 - Work with Jenkinsfiles directly from your favorite IDE
 
 
+### Passing build parameters
+
+Build parameters can be passed using a yaml file. See example below
+
+        ---
+        - name: PARAM1
+          value: some value
+        - name: TEST_PARAM2
+          value: 19
+        - name: TEST_PARAM3
+          value: 999
+        - name: TEST_PARAM4
+          value: morevalues
+        - name: SOME_PARAM
+          value: obscure value
+
+
 
