@@ -3,6 +3,17 @@
 
 A commandline tool to quickly develop/debug Jenkins piepline using jenkinsfiles
 
+## Features
+
+- Upload jenkinsfile from local
+- Create/Update jobs (with parameters too)
+- Triggers builds
+- Streams log output to terminal
+- Stop running jobs you’ve started
+- Delete jenkins jobs
+- Work with Jenkinsfiles directly from your favorite IDE
+
+
 
 ## Usage: 
 
@@ -10,6 +21,8 @@ A commandline tool to quickly develop/debug Jenkins piepline using jenkinsfiles
 
         
             $ jrp --job <job_name> --file <jenkinsfile >--url <jenkins_url> --user <username> --token <user_api_tokern>
+        
+
 
 
 
@@ -31,15 +44,6 @@ A commandline tool to quickly develop/debug Jenkins piepline using jenkinsfiles
             $ jrp delete --job <job_name> --url <jenkins_url> --user <username> --token <user_api_tokern>
 
 
-## Features
-
-- Upload jenkinsfile from local
-- Create/Update jobs (with parameters too)
-- Triggers builds
-- Streams log output to terminal
-- Stop running jobs you’ve started
-- Delete jenkins jobs
-- Work with Jenkinsfiles directly from your favorite IDE
 
 
 ### Passing build parameters
