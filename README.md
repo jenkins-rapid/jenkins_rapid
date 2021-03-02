@@ -21,14 +21,14 @@ A commandline tool to quickly develop/debug Jenkins piepline using jenkinsfiles
 
         
             $ jrp --job <job_name> --file <jenkinsfile >--url <jenkins_url> --user <username> --token <user_api_tokern>
-        
+
 
 
 
 
 ## Install 
 
-        $ pip install jenkins-rapid
+        $ pip3 install jenkins-rapid
 
 ## Config  
 
