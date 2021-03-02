@@ -22,7 +22,7 @@ local-install: dev-install
 	 
 test-build-pip-install: build_package test-pip-install test-jrp
 
-test-build-clean-pip-install: build_package pip-clean test-pip-install test-jrp
+test-build-clean-pip-install: build_package pip-clean test-pip-install test-jrp clean-jrp-test-job test-run
 
 test-jrp:
 	. $(VIRTUALENV_NAME)/bin/activate \
