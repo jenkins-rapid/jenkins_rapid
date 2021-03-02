@@ -2,15 +2,14 @@
 """jenkins_debug_console
 
 Usage:
-    jrp --job <jobname>  --file <jenkinsfile> [--url <url>] [--user <username>] [--token <api_token>] [--sleep <sleep_time>] [--parameters <data>] [--wait-timer <time>]
-    jrp stop --job <jobname>  [--url <url>]
-    jrp logs --job <jobname>  [--url <url>]
-    jrp delete --job <jobname>  [--url <url>]
+    jrp --job <jobname>  --file <jenkinsfile> [--url <url>] [--user <username>] [--token <api_token>] [--parameters-yaml <yamlfile>] [--sleep <sleep_time>] [--wait-timer <time>]
+    jrp stop --job <jobname> [--url <url>] [--user <username>] [--token <api_token>] 
+    jrp delete --job <jobname>  [--url <url>] [--user <username>] [--token <api_token>]
     jrp --version
     jrp --help
 
 Examples:
-    jrp  --job deploy_my_app -e text -u https://jenkins.example.com:8080 -p param1=1,param2=develop
+    jrp  --job deploy_my_app -f jenkinsfile -u https://jenkins.example.com -p params.yaml
 
 Options:
   -j, --job <jobname>               Job name.
@@ -20,7 +19,7 @@ Options:
   -t, --token <api_token>           Jenkins user token
   -s, --sleep <sleep_time>          Sleep time between polling requests [default: 2]
   -w, --wait-timer <time>           Wait time in queue [default: 100]
-  -p, --parameters <data>           Comma separated job parameters i.e. a=1,b=2
+  -p, --parameters-yaml <yamlfile>  yaml file with list of name and value keys (Ex. in Readme.md)
   -h, --help                        Show this screen and exit.
   -v, --version                     Show version
 """

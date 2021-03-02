@@ -35,15 +35,27 @@ test-run:
 		&& cd ./test/pipelines \
 		&&	jrp -j test_jrp -f test_jenkinsfile  
 
-test-jrp-create:
+test-jrp-create-local: local-install
 	. $(VIRTUALENV_NAME)/bin/activate \
 		&& cd ./test/pipelines \
 		&&	jrp -j test_jrp -f test_jenkinsfile
 
-test-jrp-create-with-params: local-install
+test-jrp-create: 
 	. $(VIRTUALENV_NAME)/bin/activate \
 		&& cd ./test/pipelines \
-		&&	jrp -j test_jrp -f test_jenkinsfile -p TEST_ENV=55 
+		&&	jrp -j test_jrp -f test_jenkinsfile
+
+test-jrp-update-with-params: 
+	. $(VIRTUALENV_NAME)/bin/activate \
+		&& cd ./test/pipelines \
+		&&	jrp -j test_jrp -f test_jenkinsfile --parameters-yaml pipeline_params.yaml
+
+test-jrp-create-with-params: 
+	. $(VIRTUALENV_NAME)/bin/activate \
+		&& cd ./test/pipelines \
+		&&	jrp delete -j test_jrp \
+		&&  jrp -j test_jrp -f test_jenkinsfile --parameters-yaml pipeline_params.yaml
+
 
 
 clean-jrp-test-job:
@@ -55,6 +67,7 @@ test-jrp-build-create: build_package test-pip-install test-jrp-create
 
 test-jrp-build-create-clean: build_package test-pip-install test-jrp-create clean-jrp-test-job
 
+test-all: test-jrp-build-create-clean test-jrp-update-with-params test-jrp-create-with-params clean-jrp-test-job
 
 
 ## Docker

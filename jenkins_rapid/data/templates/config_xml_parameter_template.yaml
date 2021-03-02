@@ -1,0 +1,10 @@
+
+
+properties:
+  hudson.model.ParametersDefinitionProperty:
+    parameterDefinitions:
+      hudson.model.StringParameterDefinition:
+      {% for p in params -%}
+      - {defaultValue: {{ p.value }}, description: {{ p.description }}, name: {{ p.name }}, trim: 'false'}
+      {% endfor %}
+

@@ -9,6 +9,11 @@ import xml.etree.ElementTree
 import atexit
 from pathlib import Path
 from halo import Halo
+import yaml
+import xmltodict
+from jinja2 import Template, Environment, FileSystemLoader
+import xml.etree.ElementTree as ET
+
 
 if (not os.environ.get('PYTHONHTTPSVERIFY', '') and
 getattr(ssl, '_create_unverified_context', None)):
@@ -35,17 +40,26 @@ class Job() :
             self.jenkins_password = os.environ['JENKINS_PASSWORD']
         else:
             self.jenkins_password = arguments["--token"]
-        if arguments['--parameters']:
-            try:
-                self.parameters = dict(u.split("=") for u in arguments['--parameters'].split(","))
-            except ValueError:
-                print ("Your parameters should be in key=value format separated by ; for multi value i.e. x=1,b=2")
-                exit(1)
+
+        if arguments['--parameters-yaml']:
+            self.parametersfile =  arguments['--parameters-yaml']
+            self.parameters = True 
         else:
-            self.parameters = False            
+            self.parameters = False  
+
+        # if arguments['--parameters']:
+        #     try:
+        #         self.parameters = dict(u.split("=") for u in arguments['--parameters'].split(","))
+        #     except ValueError:
+        #         print ("Your parameters should be in key=value format separated by ; for multi value i.e. x=1,b=2")
+        #         exit(1)
+        # else:
+                  
         self.config_dir = "./.config/{}".format(self.job)
         self.config_file = "config.xml"
         self.new_job_config_xml_template="data/new_job_template.xml"
+        self.template_folder_path="data/templates"
+        self.params_yaml_template='config_xml_parameter_template.yaml'
         self.job_number = None
         self.brand_new_job = False
         self.finish_success_msg = 'Finished: SUCCESS'
@@ -125,9 +139,24 @@ class Job() :
             xml_script.text = pipeline_file.read()
         # Write new xml config template
         et.write(self.config_dir+"/"+self.config_file)
+        self.config_file_path=self.config_dir+"/"+self.config_file
         # print('##{:70}##'.format(self.config_dir+"/"+self.config_file))
         self.spinner.text = self.config_dir+"/"+self.config_file
         sleep(0.05)
+        if self.arguments['--parameters-yaml']:
+            self.update_config_with_params()
+
+    def get_params_from_yaml(self):
+        with open(self.parametersfile, 'r') as outfile:
+            data= yaml.safe_load(outfile)
+        return data
+
+    def generate_params_via_template(self):
+        file_loader = FileSystemLoader(str(Path(__file__).parent / self.template_folder_path))
+        env = Environment(loader=file_loader)
+        template = env.get_template(self.params_yaml_template)
+        output = template.render(params=self.get_params_from_yaml())
+        return output
 
     def create_new_job(self):
         # print('##{:^70}##'.format('  Creating new Jenkins job  '))
@@ -155,6 +184,34 @@ class Job() :
         config_file = '{}/{}'.format(self.config_dir,self.config_file)
         return config_file
 
+    def update_config_with_params(self):
+        # Load config xml into file object
+        s = open(self.config_file_path).read()
+        # Convert xml file object into ordered dict object
+        d = xmltodict.parse(s)
+
+        # Object params that need to be injected into xml
+        # generated via a yaml template
+        yaml_str_obj=self.generate_params_via_template()
+        if yaml_str_obj is not None:
+            yaml_obj = yaml.load(self.generate_params_via_template())
+            # Converted ordered dict to json string
+            ordered_dict=json.dumps(d,indent=2)
+            # Converted json string to data object
+            xml_obj=json.loads(ordered_dict)
+            # print(yaml_obj['properties'])
+            # Copying params into xml obj generated from yaml
+            xml_obj['flow-definition']['properties']=yaml_obj['properties']
+            # Converting data object(xml) into xml string
+            updated_xml_string=xmltodict.unparse(xml_obj,pretty=True)
+            # print(updated_xml_string)
+            
+            # Generating xml file from xml string 
+            tree = ET.ElementTree(ET.fromstring(updated_xml_string))
+            tree.write(self.config_file_path)
+
+
+
     def update_job_config(self):
         self.spinner.text = "Updating Config"
         sleep(0.05)
@@ -165,6 +222,10 @@ class Job() :
             xml_script.text = pipeline_file.read()
             
         et.write(self.config_file_path)
+        # Inject parameter from yaml parameter file
+        if self.arguments['--parameters-yaml']:
+            self.update_config_with_params()
+
         self.spinner.text = "Finished updating config"
         sleep(0.05)
 
@@ -196,16 +257,23 @@ class Job() :
                 "Jenkins-Crumb":self.crumb
         }
         # Make a build request
-        if self.parameters and self.brand_new_job is not True:
+        if self.parameters is True :
             build_url = self.url + "/job/" + self.job + "/buildWithParameters"
             self.spinner.text = "Triggering a build via post @ "+ build_url
             sleep(0.05)
             self.spinner.text = "Params :"+ str(self.parameters)
             sleep(0.05)
+            # Get yaml param list
+            yl = self.get_params_from_yaml()
+            d={}
+            # Convert yaml list items into a dict
+            for i in yl:d[i['name']]=i['value']
+            self.parameters=d
             build_request = requests.post(build_url,params=self.parameters,auth=(self.jenkins_user, self.jenkins_password), verify=False,headers=headers)
 
         else:
             build_url = self.url + "/job/" + self.job + "/build"
+            # print("Triggering a build via get @ "+ build_url)
             self.spinner.text = "Triggering a build via get @ "+ build_url
             sleep(0.05)
             build_request = requests.post(build_url,auth=(self.jenkins_user, self.jenkins_password), verify=False,headers=headers)
