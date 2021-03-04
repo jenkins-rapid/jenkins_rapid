@@ -28,12 +28,15 @@ from jenkins_rapid.jenkins_debug_console import Job
 from docopt import docopt
 import sys, traceback
 import pkg_resources
-
+import os
 
 
 if __name__ == '__main__':
     arguments = docopt(__doc__)
     myjob = Job(arguments)
+
+    # Clear terminal screen on start
+    os.system('cls' if os.name == 'nt' else 'clear')
     
     if arguments["--version"]:
         print(" \n Jenkins Rapid " + pkg_resources.get_distribution("jenkins_rapid").version + "\n")
