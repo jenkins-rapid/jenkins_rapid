@@ -35,9 +35,6 @@ if __name__ == '__main__':
     arguments = docopt(__doc__)
     myjob = Job(arguments)
 
-    # Clear terminal screen on start
-    os.system('cls' if os.name == 'nt' else 'clear')
-    
     if arguments["--version"]:
         print(" \n Jenkins Rapid " + pkg_resources.get_distribution("jenkins_rapid").version + "\n")
     elif arguments['stop']:
@@ -47,6 +44,8 @@ if __name__ == '__main__':
         myjob.delete_job()
     else:
         try:
+            # Clear terminal screen on start
+            os.system('cls' if os.name == 'nt' else 'clear')
             myjob.main()
         except KeyboardInterrupt:
             print ("Shutdown requested...exiting")
