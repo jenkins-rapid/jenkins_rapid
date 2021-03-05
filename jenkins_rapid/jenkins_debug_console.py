@@ -20,6 +20,20 @@ getattr(ssl, '_create_unverified_context', None)):
     os.environ['PYTHONHTTPSVERIFY'] = '0'
     ssl._create_default_https_context = ssl._create_unverified_context
 
+class bcolors:
+    HEADER = '\033[95m'
+    OKBLUE = '\033[94m'
+    RED = '\033[31m'
+    OKCYAN = '\033[96m'
+    BLUE = '\033[34m'
+    OKGREEN = '\033[92m'
+    WARNING = '\033[93m'
+    FAIL = '\033[91m'
+    ENDC = '\033[0m'
+    BOLD = '\033[1m'
+    UNDERLINE = '\033[4m'
+
+
 class Job() :
     def __init__(self,arguments):
         self.spinner = Halo(text='Building ..', spinner='dots')
@@ -64,12 +78,16 @@ class Job() :
         self.brand_new_job = False
         self.finish_success_msg = 'Finished: SUCCESS'
         self.finish_failure_msg = 'Finished: FAILURE'
+        self.job_status = None
+        self.server = jenkins.Jenkins(self.url, username=self.jenkins_user, password=self.jenkins_password)
 
     def if_job_exits(self):
-        server = jenkins.Jenkins(self.url, username=self.jenkins_user, password=self.jenkins_password)
-        return server.get_job_name(self.job)
+        # server = jenkins.Jenkins(self.url, username=self.jenkins_user, password=self.jenkins_password)
+        # return server.get_job_name(self.job)
+        return self.server.get_job_name(self.job)
 
     def main(self):
+        
         self.spinner.start()
         atexit.register(self.exit_handler)
         self.spinner.text = "Check if job exists"
@@ -126,6 +144,7 @@ class Job() :
 
             self.console_output(self.job_number)
 
+
     def create_new_config_xml(self):
         # Create config folder 
         if not os.path.exists(self.config_dir):                                                                                                                                                                                    
@@ -163,16 +182,18 @@ class Job() :
         self.spinner.text = "Creating new Jenkins job"
         sleep(0.05)
 
-        server = jenkins.Jenkins(self.url, username=self.jenkins_user, password=self.jenkins_password)
+        # server = jenkins.Jenkins(self.url, username=self.jenkins_user, password=self.jenkins_password)
         with open(self.config_dir+"/"+self.config_file, 'r') as file:
             xml_file = file.read()
-        create_job = server.create_job(self.job,xml_file)
+        # create_job = server.create_job(self.job,xml_file)
+        create_job = self.server.create_job(self.job,xml_file)
         self.brand_new_job = True
         return
 
     def get_config_xml(self):
-        server = jenkins.Jenkins(self.url, username=self.jenkins_user, password=self.jenkins_password)
-        job_xml = server.get_job_config(self.job)
+        # server = jenkins.Jenkins(self.url, username=self.jenkins_user, password=self.jenkins_password)
+        # job_xml = server.get_job_config(self.job)
+        job_xml = self.server.get_job_config(self.job)
         self.spinner.text = self.config_file
         sleep(0.05)
         # Create config folder 
@@ -199,13 +220,10 @@ class Job() :
             ordered_dict=json.dumps(d,indent=2)
             # Converted json string to data object
             xml_obj=json.loads(ordered_dict)
-            # print(yaml_obj['properties'])
             # Copying params into xml obj generated from yaml
             xml_obj['flow-definition']['properties']=yaml_obj['properties']
             # Converting data object(xml) into xml string
             updated_xml_string=xmltodict.unparse(xml_obj,pretty=True)
-            # print(updated_xml_string)
-            
             # Generating xml file from xml string 
             tree = ET.ElementTree(ET.fromstring(updated_xml_string))
             tree.write(self.config_file_path)
@@ -215,7 +233,7 @@ class Job() :
     def update_job_config(self):
         self.spinner.text = "Updating Config"
         sleep(0.05)
-        server = jenkins.Jenkins(self.url, username=self.jenkins_user, password=self.jenkins_password)
+        # server = jenkins.Jenkins(self.url, username=self.jenkins_user, password=self.jenkins_password)
         et = xml.etree.ElementTree.parse(self.config_file_path)
         xml_script = et.getroot().find('definition').find('script')
         with open(self.jenkinsfile, 'r') as pipeline_file:
@@ -233,10 +251,11 @@ class Job() :
     def upload_job_config(self):
         self.spinner.text = "Uploading Jenkins file and config"
         sleep(0.05)
-        server = jenkins.Jenkins(self.url, username=self.jenkins_user, password=self.jenkins_password)
+        # server = jenkins.Jenkins(self.url, username=self.jenkins_user, password=self.jenkins_password)
         with open(self.config_file_path, 'r') as file:
             xml_file = file.read()
-        reconfigure_job_xml = server.reconfig_job(self.job,xml_file)
+        # reconfigure_job_xml = server.reconfig_job(self.job,xml_file)
+        reconfigure_job_xml = self.server.reconfig_job(self.job,xml_file)
         self.spinner.text = "Finished uploading"
         sleep(0.05)
 
@@ -319,12 +338,11 @@ class Job() :
     def console_output(self, job_number):
         stream_spinner = Halo(stream=sys.stderr)
         stream_spinner.start('\n')
-        
 
         print('\n\n')
-        print('#'*74)
-        print('##{:^70}##'.format("  Started Job [ {} ] - Build # {}    ".format(self.job,self.job_number) ))
-        print('#'*74)
+        print(bcolors.OKCYAN+'#'*74+bcolors.ENDC)
+        print(bcolors.OKCYAN+'##{:^70}##'.format("  Started Build [ {} ] - Build # {}    ".format(self.job,self.job_number) )+bcolors.ENDC)
+        print(bcolors.OKCYAN+'#'*74+bcolors.ENDC)
         headers = {
                 "Jenkins-Crumb":self.crumb,
                 "Content-type": "application/x-www-form-urlencoded; charset=UTF-8",
@@ -339,6 +357,7 @@ class Job() :
         console_requests_session = requests.session()
         console_requests_session.auth=(self.jenkins_user, self.jenkins_password)
         while stream_open:
+            stream_spinner.text="\n"
             console_response = console_requests_session.post(job_url, data={'start': start_at }, verify=False,headers=headers)
             content_length = int(console_response.headers.get("Content-Length",-1))
             content_length = int("10")
@@ -355,25 +374,25 @@ class Job() :
                 check_job_status = 0
                 # Print to screen console
                 if len(console_response.content) > 0:
+                    console_string = str(console_response.content.decode("utf-8"))
                     if self.finish_failure_msg in str(console_response.content):
                         stream_spinner.text="\n"
                         sleep(5)
-                        print(console_response.content.decode("utf-8"))
-                        print(self.finish_failure_msg + "😑😑😑😑")
-                        # print(self.finish_failure_msg)
-                        print("Stopping jrp")
-                        sys.exit()
-                    elif self.finish_success_msg in str(console_response.content):
+                        print(self.format_console_output(console_string + "😑😑😑😑"))
+                        self.job_status = "failed"
+                        stream_open = False
+                        # sys.exit()
+                    elif self.finish_success_msg in console_string:
                         stream_spinner.text="\n"
                         sleep(5)
-                        print(console_response.content.decode("utf-8"))
-                        print(self.finish_success_msg + "🥳 🥳  🎉🎉🔥🔥💥💥⚡️⚡️")
-                        # print(self.finish_success_msg )
-                        print("Stopping jrp")
-                        sys.exit()
+                        print(self.format_console_output(console_string + "🥳 🥳  🎉🎉🔥🔥💥💥⚡️⚡️"))
+                        self.job_status = "success" 
+                        stream_open = False
+                        # sys.exit()
                     else:
                         stream_spinner.text="\n"
-                        print(console_response.content.decode("utf-8"))
+                        self.format_console_output(console_string)
+
                 try:
                     sleep(self.sleep)
                 except Exception:
@@ -391,30 +410,57 @@ class Job() :
                 else:
                     # Job is still running
                     check_job_status = 0
+        stream_spinner.text="\n"
         stream_spinner.stop()
-    
-    def stop_jobs(self,):
-        server = jenkins.Jenkins(self.url, username=self.jenkins_user, password=self.jenkins_password)
+
+    def format_console_output(self,console_string):
+        
+        for line in console_string.split('\n'):
+            if "+" in line[0:5]: 
+                print(line.replace('+',bcolors.RED  + "+" + bcolors.ENDC))
+            elif "[Pipeline]" in line[0:10]:
+                print(line.replace('[Pipeline]',bcolors.OKCYAN  + "[Pipeline]" + bcolors.ENDC))
+            else:
+                if line:
+                    print(line)
+
+    def stop_jobs(self):
+        # server = jenkins.Jenkins(self.url, username=self.jenkins_user, password=self.jenkins_password)
         # List running jobs
         if self.job_number is not None :
+            print("\n ⚠️  Build Aborted ⚠️  🤖 🤖  \n")
             print('#'*74)
-            print('##{:^70}##'.format('  Stopped Job [ {} ] build No:[{}]  '.format(self.job,self.job_number)))
-            builds = server.stop_build(self.job,self.job_number)
+            print('##{:^70}##'.format('  Build Stopped [ {} ] build No:[{}]  '.format(self.job,self.job_number)))
+            # builds = server.stop_build(self.job,self.job_number)
+            builds = self.server.stop_build(self.job,self.job_number)
             print('#'*74)
+            print("\n\n")
         else:
             print("No build to stop")
         return
     
     def exit_handler(self):
-        self.stop_jobs()
+        if self.job_status:
+            if 'fail' in self.job_status or 'success' in self.job_status :
+                print('#'*74)
+                print('##{:^70}##'.format(' Job [ {} ] build No:[{}]  '.format(self.job,self.job_number)))
+                print('#'*74)
+                print("\n\n")
+        else: 
+            self.stop_jobs()
         
     def delete_job(self):
-        server = jenkins.Jenkins(self.url, username=self.jenkins_user, password=self.jenkins_password)
+        # server = jenkins.Jenkins(self.url, username=self.jenkins_user, password=self.jenkins_password)
         try:
-            server.delete_job(self.job)
-            print("\n\n## {} job has been deleted [{}] ##\n\n".format(self.job,self.url))
+            # server.delete_job(self.job)
+            self.server.delete_job(self.job)
+            print("\n\n")
+            print(bcolors.OKCYAN+'#'*74+bcolors.ENDC)
+            print(bcolors.OKCYAN+'##{:^70}##'.format("  Job [ {} ] - deleted  {}  ".format(self.job,self.url) )+bcolors.ENDC)
+            print(bcolors.OKCYAN+'#'*74+bcolors.ENDC)
+            print("\n\n")
         except Exception as e:
-            print("Job delete error: ", e)
+            print(f"\n\n Job delete error: {e} \n\n")
 
         return
 

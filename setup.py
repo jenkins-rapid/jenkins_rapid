@@ -24,7 +24,7 @@ def long_description():
 
 
 setup(name='jenkins_rapid',
-      version='0.4.6',
+      version='0.4.7',
       description='A simple tool to rapidly create and debug jenkins pipelines',
       long_description=long_description(),
       long_description_content_type='text/markdown',
