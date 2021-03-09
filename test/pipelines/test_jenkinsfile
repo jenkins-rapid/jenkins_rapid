@@ -1,10 +1,18 @@
-node('master'){
-    sh '''
-    for i in $(seq 1 5)
-    do
-        echo "Welcome $i times"
-        sleep 3
-    done
-    echo "End of welcome message"
-    '''
+pipeline {
+  agent any
+  stages {
+    stage ('Initialize') {
+      steps {
+            sh '''
+		    for i in $(seq 1 5)
+		    do
+		        echo "Welcome $i times"
+		        sleep 3
+		    done
+		    echo "End of welcome message"
+		    '''
+
+      }
+    }
+  }
 }
