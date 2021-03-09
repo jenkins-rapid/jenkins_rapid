@@ -2,7 +2,7 @@
 """jenkins_debug_console
 
 Usage:
-    jrp --job <jobname>  --file <jenkinsfile> [--url <url>] [--user <username>] [--token <api_token>] [--parameters-yaml <yamlfile>] [--sleep <sleep_time>] [--wait-timer <time>]
+    jrp --job <jobname>  --file <jenkinsfile> [--url <url>] [--user <username>] [--token <api_token>] [--parameters-yaml <yamlfile>] [--ignore-linting] 
     jrp stop --job <jobname> [--url <url>] [--user <username>] [--token <api_token>] 
     jrp delete --job <jobname>  [--url <url>] [--user <username>] [--token <api_token>]
     jrp --version
@@ -17,9 +17,8 @@ Options:
   -l, --url <url>                   Jenkins URL [default: http://localhost:8080]
   -u, --user <username>             Jenkins user name
   -t, --token <api_token>           Jenkins user token
-  -s, --sleep <sleep_time>          Sleep time between polling requests [default: 2]
-  -w, --wait-timer <time>           Wait time in queue [default: 100]
   -p, --parameters-yaml <yamlfile>  yaml file with list of name and value keys (Ex. in Readme.md)
+  -i, --ignore-linting              Ignore default linting
   -h, --help                        Show this screen and exit.
   -v, --version                     Show version
 """

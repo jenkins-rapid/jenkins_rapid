@@ -44,8 +44,10 @@ class Job() :
         self.jenkinsfile = arguments['--file']
         self.spinner    = Halo(text='Building ..', spinner='dots')
         self.job    = arguments['--job']
-        self.timer  = int(arguments['--wait-timer'])
-        self.sleep  = int(arguments['--sleep'])
+        # self.timer  = int(arguments['--wait-timer'])
+        # self.sleep  = int(arguments['--sleep'])
+        self.timer  = 100
+        self.sleep  = 2
         self.url    = os.environ.get('JENKINS_URL') if os.environ.get('JENKINS_URL') else arguments['--url']
         self.jenkins_user = os.environ.get('JENKINS_USER') if os.environ.get('JENKINS_USER') else arguments["--user"]
         self.jenkins_password = os.environ.get('JENKINS_PASSWORD') if os.environ.get('JENKINS_PASSWORD') else arguments["--token"]
@@ -121,8 +123,9 @@ class Job() :
             sys.exit()
         # Check auth - get crumbs
         self.get_crumb()
-        # Validate jenkins file 
-        self.validate_jenkinsfile()
+        # Validate/Lint jenkinsfile if ignore flag is not set
+        if not self.arguments["--ignore-linting"]:
+            self.validate_jenkinsfile()
 
     def main(self):
         # print(self.arguments)
@@ -497,7 +500,7 @@ class Job() :
             self.server.delete_job(self.job)
             print("\n\n")
             print(bcolors.OKCYAN+'#'*74+bcolors.ENDC)
-            print(bcolors.OKCYAN+'##{:^70}##'.format("  Job [ {} ] - deleted  {}  ".format(;,self.url) )+bcolors.ENDC)
+            print(bcolors.OKCYAN+'##{:^70}##'.format("  Job [ {} ] - deleted  {}  ".format(self.job,self.url) )+bcolors.ENDC)
             print(bcolors.OKCYAN+'#'*74+bcolors.ENDC)
             print("\n\n")
         except Exception as e:
