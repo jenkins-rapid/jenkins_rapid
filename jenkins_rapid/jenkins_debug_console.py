@@ -36,114 +36,147 @@ class bcolors:
 
 class Job() :
     def __init__(self,arguments):
-        self.spinner = Halo(text='Building ..', spinner='dots')
-        self.arguments = arguments
-        if os.environ.get('JENKINS_URL'):
-            self.url = os.environ['JENKINS_URL']
-        else: 
-            self.url = arguments['--url']
+        self.crumb      = None
+        self.build_url  = None         
+        self.job_number = None
+        self.job_status = None
+        self.arguments  = arguments
         self.jenkinsfile = arguments['--file']
-        self.job = arguments['--job']
-        self.timer = int(arguments['--wait-timer'])
-        self.sleep = int(arguments['--sleep'])
-        if os.environ.get('JENKINS_USER'):
-            self.jenkins_user = os.environ['JENKINS_USER']
-        else:
-            self.jenkins_user = arguments["--user"]
-        if os.environ.get('JENKINS_PASSWORD'):
-            self.jenkins_password = os.environ['JENKINS_PASSWORD']
-        else:
-            self.jenkins_password = arguments["--token"]
-
-        if arguments['--parameters-yaml']:
-            self.parametersfile =  arguments['--parameters-yaml']
-            self.parameters = True 
-        else:
-            self.parameters = False  
-
-        # if arguments['--parameters']:
-        #     try:
-        #         self.parameters = dict(u.split("=") for u in arguments['--parameters'].split(","))
-        #     except ValueError:
-        #         print ("Your parameters should be in key=value format separated by ; for multi value i.e. x=1,b=2")
-        #         exit(1)
-        # else:
-                  
-        self.config_dir = "./.config/{}".format(self.job)
-        self.config_file = "config.xml"
+        self.spinner    = Halo(text='Building ..', spinner='dots')
+        self.job    = arguments['--job']
+        self.timer  = int(arguments['--wait-timer'])
+        self.sleep  = int(arguments['--sleep'])
+        self.url    = os.environ.get('JENKINS_URL') if os.environ.get('JENKINS_URL') else arguments['--url']
+        self.jenkins_user = os.environ.get('JENKINS_USER') if os.environ.get('JENKINS_USER') else arguments["--user"]
+        self.jenkins_password = os.environ.get('JENKINS_PASSWORD') if os.environ.get('JENKINS_PASSWORD') else arguments["--token"]
+        self.parametersfile =  arguments['--parameters-yaml']
+        self.parameters     = True if arguments['--parameters-yaml'] else False
+        self.brand_new_job  = False
+        self.config_dir     = "./.config/{}".format(self.job)
+        self.config_file    = "config.xml"
         self.new_job_config_xml_template="data/new_job_template.xml"
         self.template_folder_path="data/templates"
         self.params_yaml_template='config_xml_parameter_template.yaml'
-        self.job_number = None
-        self.brand_new_job = False
         self.finish_success_msg = 'Finished: SUCCESS'
         self.finish_failure_msg = 'Finished: FAILURE'
-        self.job_status = None
         self.server = jenkins.Jenkins(self.url, username=self.jenkins_user, password=self.jenkins_password)
 
     def if_job_exits(self):
-        # server = jenkins.Jenkins(self.url, username=self.jenkins_user, password=self.jenkins_password)
-        # return server.get_job_name(self.job)
         return self.server.get_job_name(self.job)
 
+    def validate_jenkinsfile(self):
+        self.spinner.text ="Validating Jenkinsfile"
+        sleep(0.05)
+        files = {
+            'jenkinsfile': [None, None],
+        }
+        validate_url = self.url + '/pipeline-model-converter/validate'
+        try:
+            with open(self.jenkinsfile, 'r') as pipeline_file:
+                files['jenkinsfile'][1] = pipeline_file
+                j_validate_response = requests.post(validate_url, files=files, auth=(self.jenkins_user, self.jenkins_password), verify=False)
+            if "Errors encountered validating Jenkinsfile" in j_validate_response.text:
+                self.spinner.text ="Validation Error ⚠️ !"
+                sleep(0.05)
+                print("\n\n"+j_validate_response.text)
+                print(" To ignore jenkinsfile validation use -i flag\n\n")
+                sys.exit()
+            elif "Jenkinsfile successfully validated." not in j_validate_response.text:
+                print("\n\n"+j_validate_response.text)
+                print(" To ignore jenkinsfile validation message use -i flag\n\n")
+            else:
+                # Validation is successful 
+                sleep(0.05)
+                self.spinner.text =j_validate_response.text
+        except Exception as e:
+            print(f"\n\n Exception Error : {e} \n\n") 
+            sys.exit()
+        self.spinner.text ="Jenkinsfile Validated "
+        sleep(0.05)
+
+    def validate_args(self):
+        # Check for username 
+        if self.arguments["--user"] is None:
+            # Does env exist
+            if not os.environ.get('JENKINS_USER'):
+                print("\n\nPlease provide jenkins username via --user argument or JENKINS_USER env vars\n\n")
+                sys.exit()
+        # Check for API token
+        if self.arguments["--token"] is None:
+            # Does env exist
+            if not os.environ.get('JENKINS_PASSWORD'):
+                print("\n\nPlease provide jenkins API token via --token argument or JENKINS_PASSWORD env vars\n\n")
+                sys.exit()
+        # Validate user credentials        
+        try:
+            check= requests.get(self.url,auth=(self.jenkins_user, self.jenkins_password), verify=False)
+            if check.status_code == 401 or check.status_code == 403:
+                print(f"\n\n Check your credentails/permissions (HTTP {check.status_code} Error ) \n\n")
+                sys.exit()    
+            elif check.status_code != 200:
+                print(f"\n\n Check your Jenkins url {self.url}, it does not seem to be running")
+                print(f"(HTTP {check.status_code} Error ) \n\n")
+        except Exception as e:
+            print(f"\n\n Exception Error : {e} \n\n") 
+            sys.exit()
+        # Check auth - get crumbs
+        self.get_crumb()
+        # Validate jenkins file 
+        self.validate_jenkinsfile()
+
     def main(self):
-        
+        # print(self.arguments)
         self.spinner.start()
+        sleep(0.05)
+        self.spinner.text = "Validate input arguments"
+        self.validate_args()
         atexit.register(self.exit_handler)
         self.spinner.text = "Check if job exists"
-        self.if_job_exits()
+        # Check if Build Job/Pipeline exists 
         if self.if_job_exits():
             self.spinner.text = "Job found"
             sleep(0.05)    
-            # update_job()
-            # print('{:#^74}'.format('  Updating job:{}  '.format(self.job) ))
-
-            # print('##{:^70}##'.format('  1. Get existing config xml  '))
             self.spinner.text = '  1. Get existing config xml  '    
             sleep(0.05)    
             self.config_file_path = self.get_config_xml()
-            # print('##{:^70}##'.format(self.config_file_path))
             self.spinner.text =self.config_file_path
+            # - check if params exist
+            # - check if generated params file exists locally
+            #     - grab params
+            #     - generate yaml file out of params
+            # - Pass params file to trigger job
+
             sleep(0.05)    
-            # print('##{:^70}##'.format('2. Update xml  '))
             self.spinner.text = '2. Update xml'    
             sleep(0.05)    
             self.update_job_config()
-            # print('##{:^70}##'.format('  3. Reconfigure/Upload config xml  '))
             self.spinner.text = '3. Reconfigure/Upload config xml'    
             sleep(0.05)    
             self.upload_job_config()
-            # print('{:#^74}'.format('  Updating Finished  '))
             self.spinner.text = 'Updating Finished  '    
-            sleep(0.05)    
+            sleep(0.05)   
         else:
-            # print('{:#^74}'.format('  Creating job:{}  '.format(self.job) ))
-            # create_job
+            # Create new job/pipelinejobjob
             self.spinner.text = '  Creating job:{}  '.format(self.job)    
             sleep(0.05)    
-            # print('##{:^70}##'.format('  1. Use template xml  '))
             self.spinner.text = '1. Use template xml'    
             sleep(0.05)    
-            # print('##{:^70}##'.format('  2. Update template xml  '))
             self.spinner.text = '2. Update template xml'
             sleep(0.05)    
             self.create_new_config_xml()
-            # print('##{:^70}##'.format('  3. Create job with xml  '))
             self.spinner.text = '3. Create job with xml'
             sleep(0.05)    
             self.create_new_job()
-            # print('{:#^74}'.format('  Finished creating job  '))
             self.spinner.text = 'Finished creating job'
-            sleep(0.05)    
+            sleep(0.05)
+        # Trigger job after checking job exits    
         if self.if_job_exits():
             self.get_crumb()
             queue_url = self.trigger_build()
             self.spinner.text = ''
             self.job_number = self.waiting_for_job_to_start(queue_url)
             self.spinner.stop()
-
             self.console_output(self.job_number)
-
 
     def create_new_config_xml(self):
         # Create config folder 
@@ -262,40 +295,50 @@ class Job() :
     def get_crumb(self):
         if self.url:
             crumb_url=self.url+"/crumbIssuer/api/json"
-            r = requests.get(crumb_url,auth=(self.jenkins_user, self.jenkins_password), verify=False)
-            response = r.json()
-            self.crumb=response["crumb"]
-            self.spinner.text = response["crumb"]
-            sleep(0.05) 
+            try:
+                r = requests.get(crumb_url,auth=(self.jenkins_user, self.jenkins_password), verify=False)
+                response = r.json()
+                self.crumb=response["crumb"]
+                self.spinner.text = response["crumb"]
+                sleep(0.05) 
+            except Exception as e:
+                print(f"\n\n Jenkins URL seems unavailable. Check if Jenkins is working! \n\n Error : {e} \n\n")             
         else:
             print("Check parameters")
             print("url parameter is missing")
 
+    @staticmethod
+    def trigger_build_request(self,build_url,params=None):
+        self.spinner.text = "Triggering a build via post @ "+ build_url
+        sleep(0.05)    
+        headers =  {
+                        "Jenkins-Crumb":self.crumb
+                    }
+        try:
+            build_request = requests.post(build_url,params=params,auth=(self.jenkins_user, self.jenkins_password), verify=False,headers=headers)
+        except Exception as e:
+            if build_request.status_code == 401 or build_request.status_code == 403:
+                print("\n\n Check account permissions ( must be admin)/ credentails ")
+            print(f"\n\n Error with triggering build \n\n Error : {e} \n\n")             
+
+        return build_request
+
+
     def trigger_build(self):
-        headers = {
-                "Jenkins-Crumb":self.crumb
-        }
         # Make a build request
         if self.parameters is True :
-            build_url = self.url + "/job/" + self.job + "/buildWithParameters"
-            self.spinner.text = "Triggering a build via post @ "+ build_url
-            sleep(0.05)
-            self.spinner.text = "Params :"+ str(self.parameters)
-            sleep(0.05)
-            # Get yaml param list
+            build_url = str(self.url + "/job/" + self.job + "/buildWithParameters")
+            # Get parameters from yaml file
+            # Load parameters from  yaml parameters file provided as -p argument 
             yl = self.get_params_from_yaml()
             d={}
-            # Convert yaml list items into a dict
+            # Convert yaml list items into a dict of key value pairs
             for i in yl:d[i['name']]=i['value']
             self.parameters=d
-            build_request = requests.post(build_url,params=self.parameters,auth=(self.jenkins_user, self.jenkins_password), verify=False,headers=headers)
-
+            build_request = self.trigger_build_request(self,build_url,params=self.parameters)
         else:
             build_url = self.url + "/job/" + self.job + "/build"
-            # print("Triggering a build via get @ "+ build_url)
-            self.spinner.text = "Triggering a build via get @ "+ build_url
-            sleep(0.05)
-            build_request = requests.post(build_url,auth=(self.jenkins_user, self.jenkins_password), verify=False,headers=headers)
+            build_request = self.trigger_build_request(self,build_url)
             self.brand_new_job = False
         if build_request.status_code == 201:
             queue_url =  build_request.headers['location'] +  "api/json"
@@ -450,19 +493,16 @@ class Job() :
             self.stop_jobs()
         
     def delete_job(self):
-        # server = jenkins.Jenkins(self.url, username=self.jenkins_user, password=self.jenkins_password)
         try:
-            # server.delete_job(self.job)
             self.server.delete_job(self.job)
             print("\n\n")
             print(bcolors.OKCYAN+'#'*74+bcolors.ENDC)
-            print(bcolors.OKCYAN+'##{:^70}##'.format("  Job [ {} ] - deleted  {}  ".format(self.job,self.url) )+bcolors.ENDC)
+            print(bcolors.OKCYAN+'##{:^70}##'.format("  Job [ {} ] - deleted  {}  ".format(;,self.url) )+bcolors.ENDC)
             print(bcolors.OKCYAN+'#'*74+bcolors.ENDC)
             print("\n\n")
         except Exception as e:
             print(f"\n\n Job delete error: {e} \n\n")
 
-        return
 
 
 
