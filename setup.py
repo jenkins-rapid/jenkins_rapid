@@ -8,7 +8,7 @@ install_requires = [
     'python-jenkins==1.7.0',
     'requests==2.25.1',
     'xmltodict==0.12.0',
-    'Jinja2==2.11.2',
+    'Jinja2==2.11.3',
     'PyYAML==4.2b1',
     'halo==0.0.31'
 ]

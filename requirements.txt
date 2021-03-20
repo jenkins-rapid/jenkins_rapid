@@ -5,7 +5,7 @@ docopt==0.6.1
 docopts==0.6.1
 halo==0.0.31
 idna==2.10
-Jinja2==2.11.2
+Jinja2==2.11.3
 log-symbols==0.0.14
 MarkupSafe==1.1.1
 multi-key-dict==2.0.3
