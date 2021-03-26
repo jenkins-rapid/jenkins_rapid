@@ -9,7 +9,7 @@ install_requires = [
     'requests==2.25.1',
     'xmltodict==0.12.0',
     'Jinja2==2.11.2',
-    'PyYAML==4.2b1',
+    'PyYAML==5.4',
     'halo==0.0.31'
 ]
 
