@@ -65,6 +65,10 @@ class Job() :
 
     def if_job_exits(self):
         return self.server.get_job_name(self.job)
+    
+    def display(self,txt):
+        sleep(0.05)
+        self.spinner.text = txt
 
     def validate_jenkinsfile(self):
         self.spinner.text ="Validating Jenkinsfile"
@@ -130,17 +134,22 @@ class Job() :
     def main(self):
         # print(self.arguments)
         self.spinner.start()
-        sleep(0.05)
-        self.spinner.text = "Validate input arguments"
+        # sleep(0.05)
+        # self.spinner.text = "Validate input arguments"
+        self.display("Validate input arguments")
         self.validate_args()
         atexit.register(self.exit_handler)
         self.spinner.text = "Check if job exists"
         # Check if Build Job/Pipeline exists 
         if self.if_job_exits():
-            self.spinner.text = "Job found"
-            sleep(0.05)    
-            self.spinner.text = '  1. Get existing config xml  '    
-            sleep(0.05)    
+            # self.spinner.text = "Job found"
+            self.display("Job found")
+
+            # sleep(0.05)    
+            # self.spinner.text = '  1. Get existing config xml  '    
+            self.display("'  1. Get existing config xml  '")
+            # sleep(0.05)    
+
             self.config_file_path = self.get_config_xml()
             self.spinner.text =self.config_file_path
             # - check if params exist
@@ -149,29 +158,45 @@ class Job() :
             #     - generate yaml file out of params
             # - Pass params file to trigger job
 
-            sleep(0.05)    
-            self.spinner.text = '2. Update xml'    
-            sleep(0.05)    
+            # sleep(0.05)    
+            # self.spinner.text = '2. Update xml'
+            self.display("2. Update xml")
+                
+            # sleep(0.05)    
             self.update_job_config()
-            self.spinner.text = '3. Reconfigure/Upload config xml'    
-            sleep(0.05)    
+            self.display("3. Reconfigure/Upload config xml")
+
+            # self.spinner.text = '3. Reconfigure/Upload config xml'    
+            # sleep(0.05)    
             self.upload_job_config()
-            self.spinner.text = 'Updating Finished  '    
-            sleep(0.05)   
+            self.display("4. Updating Finished")
+
+            # self.spinner.text = 'Updating Finished  '    
+            # sleep(0.05)   
         else:
             # Create new job/pipelinejobjob
-            self.spinner.text = '  Creating job:{}  '.format(self.job)    
-            sleep(0.05)    
-            self.spinner.text = '1. Use template xml'    
-            sleep(0.05)    
-            self.spinner.text = '2. Update template xml'
-            sleep(0.05)    
+            # self.spinner.text = '  Creating job:{}  '.format(self.job)    
+            # sleep(0.05)
+            self.display(f'  Creating job:{self.job}  ')
+
+            # self.spinner.text = '1. Use template xml'    
+            # sleep(0.05)
+            self.display("1. Use template xml")
+
+            # self.spinner.text = '2. Update template xml'
+            # sleep(0.05)
+            self.display("2. Update template xml")
+
             self.create_new_config_xml()
-            self.spinner.text = '3. Create job with xml'
-            sleep(0.05)    
+            # self.spinner.text = '3. Create job with xml'
+            # sleep(0.05)
+            self.display('3. Create job with xml')
+
             self.create_new_job()
-            self.spinner.text = 'Finished creating job'
-            sleep(0.05)
+            # self.spinner.text = 'Finished creating job'
+            # sleep(0.05)
+            self.display('Finished creating job')
+
         # Trigger job after checking job exits    
         if self.if_job_exits():
             self.get_crumb()
