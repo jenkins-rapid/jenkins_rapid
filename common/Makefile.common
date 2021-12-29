@@ -1,10 +1,9 @@
 
-
 LATEST_BUILD_VERSION?=$(shell ls -latr ./dist/*.tar.gz  | tail -n 1  | awk '{print $$9}' | cut -d / -f 3)
 LATEST_BUILD_PATH?=./dist/$(LATEST_BUILD_VERSION)
 
 # Virtualenv vars 
-VIRTUALENV_NAME?=<virtualenv_name>
+VIRTUALENV_NAME?=env
 VIRTUALENVWRAPPER_PYTHON?=<python_path>
 PIP_PACKAGE?=<pip_package_name>
 
@@ -19,10 +18,10 @@ dev-install:
 
 
 build_package:
-	python3.7 setup.py sdist 
+	python3 setup.py sdist 
 
 setup_twine:
-		pip3.7 install --user --upgrade twine
+		pip3 install --user --upgrade twine
 
 upload_pypi:
 	twine upload $(LATEST_BUILD_PATH)  -u $(PYPI_USER) -p $(PYPI_PASS)
