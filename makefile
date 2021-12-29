@@ -13,16 +13,16 @@ PIP_PACKAGE = jenkins_rapid
 # JRP VARS
 JENKINS_USER?=admin
 JENKINS_PASSWORD?=admin
-JENKINS_URL?=http://localhost:8080/
+JENKINS_URL?=http://localhost:5050/
 
 
 
 
 local-install: dev-install 
 	 
-test-build-pip-install: build_package test-pip-install test-jrp
+test-build-pip-install: virtual-env-setup build_package test-pip-install test-jrp
 
-test-build-clean-pip-install: build_package pip-clean test-pip-install test-jrp clean-jrp-test-job test-run
+test-build-clean-pip-install: virtual-env-setup build_package pip-clean test-pip-install test-jrp clean-jrp-test-job test-run
 
 test-jrp:
 	. $(VIRTUALENV_NAME)/bin/activate \
@@ -30,7 +30,7 @@ test-jrp:
 
 build-upload: build_package upload_pypi
 
-test-run:
+test-run: virtual-env-setup
 	. $(VIRTUALENV_NAME)/bin/activate \
 		&& cd ./test/pipelines \
 		&&	jrp -j test_jrp -f test_jenkinsfile  
