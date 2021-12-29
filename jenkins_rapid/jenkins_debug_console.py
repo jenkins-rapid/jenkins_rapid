@@ -132,23 +132,15 @@ class Job() :
             self.validate_jenkinsfile()
 
     def main(self):
-        # print(self.arguments)
         self.spinner.start()
-        # sleep(0.05)
-        # self.spinner.text = "Validate input arguments"
         self.display("Validate input arguments")
         self.validate_args()
         atexit.register(self.exit_handler)
         self.spinner.text = "Check if job exists"
         # Check if Build Job/Pipeline exists 
         if self.if_job_exits():
-            # self.spinner.text = "Job found"
             self.display("Job found")
-
-            # sleep(0.05)    
-            # self.spinner.text = '  1. Get existing config xml  '    
             self.display("'  1. Get existing config xml  '")
-            # sleep(0.05)    
 
             self.config_file_path = self.get_config_xml()
             self.spinner.text =self.config_file_path
@@ -158,43 +150,24 @@ class Job() :
             #     - generate yaml file out of params
             # - Pass params file to trigger job
 
-            # sleep(0.05)    
-            # self.spinner.text = '2. Update xml'
             self.display("2. Update xml")
                 
-            # sleep(0.05)    
             self.update_job_config()
             self.display("3. Reconfigure/Upload config xml")
 
-            # self.spinner.text = '3. Reconfigure/Upload config xml'    
-            # sleep(0.05)    
             self.upload_job_config()
             self.display("4. Updating Finished")
 
-            # self.spinner.text = 'Updating Finished  '    
-            # sleep(0.05)   
         else:
             # Create new job/pipelinejobjob
-            # self.spinner.text = '  Creating job:{}  '.format(self.job)    
-            # sleep(0.05)
             self.display(f'  Creating job:{self.job}  ')
-
-            # self.spinner.text = '1. Use template xml'    
-            # sleep(0.05)
             self.display("1. Use template xml")
-
-            # self.spinner.text = '2. Update template xml'
-            # sleep(0.05)
             self.display("2. Update template xml")
-
+            
             self.create_new_config_xml()
-            # self.spinner.text = '3. Create job with xml'
-            # sleep(0.05)
+            
             self.display('3. Create job with xml')
-
             self.create_new_job()
-            # self.spinner.text = 'Finished creating job'
-            # sleep(0.05)
             self.display('Finished creating job')
 
         # Trigger job after checking job exits    
@@ -210,13 +183,16 @@ class Job() :
         # Create config folder 
         if not os.path.exists(self.config_dir):                                                                                                                                                                                    
             os.makedirs(self.config_dir)
+        
         # Load config XML template
         new_job_config_xml_template_path = str(Path(__file__).parent / self.new_job_config_xml_template)
         et = xml.etree.ElementTree.parse(new_job_config_xml_template_path)
         xml_script = et.getroot().find('definition').find('script')
+        
         #  Copy pipeline script file into config xml template  
         with open(self.jenkinsfile, 'r') as pipeline_file:
             xml_script.text = pipeline_file.read()
+        
         # Write new xml config template
         et.write(self.config_dir+"/"+self.config_file)
         self.config_file_path=self.config_dir+"/"+self.config_file
@@ -239,24 +215,17 @@ class Job() :
         return output
 
     def create_new_job(self):
-        # print('##{:^70}##'.format('  Creating new Jenkins job  '))
-        self.spinner.text = "Creating new Jenkins job"
-        sleep(0.05)
-
-        # server = jenkins.Jenkins(self.url, username=self.jenkins_user, password=self.jenkins_password)
+        self.display("Creating new Jenkins job")
         with open(self.config_dir+"/"+self.config_file, 'r') as file:
             xml_file = file.read()
-        # create_job = server.create_job(self.job,xml_file)
         create_job = self.server.create_job(self.job,xml_file)
         self.brand_new_job = True
         return
 
     def get_config_xml(self):
-        # server = jenkins.Jenkins(self.url, username=self.jenkins_user, password=self.jenkins_password)
-        # job_xml = server.get_job_config(self.job)
         job_xml = self.server.get_job_config(self.job)
-        self.spinner.text = self.config_file
-        sleep(0.05)
+        self.display(self.config_file)
+
         # Create config folder 
         if not os.path.exists(self.config_dir):                                                                                                                                                                                    
             os.makedirs(self.config_dir)
@@ -292,9 +261,7 @@ class Job() :
 
 
     def update_job_config(self):
-        self.spinner.text = "Updating Config"
-        sleep(0.05)
-        # server = jenkins.Jenkins(self.url, username=self.jenkins_user, password=self.jenkins_password)
+        self.display("Updating Config")
         et = xml.etree.ElementTree.parse(self.config_file_path)
         xml_script = et.getroot().find('definition').find('script')
         with open(self.jenkinsfile, 'r') as pipeline_file:
@@ -305,20 +272,15 @@ class Job() :
         if self.arguments['--parameters-yaml']:
             self.update_config_with_params()
 
-        self.spinner.text = "Finished updating config"
-        sleep(0.05)
+        self.display("Finished updating config")
 
     
     def upload_job_config(self):
-        self.spinner.text = "Uploading Jenkins file and config"
-        sleep(0.05)
-        # server = jenkins.Jenkins(self.url, username=self.jenkins_user, password=self.jenkins_password)
+        self.display("Uploading Jenkins file and config")
         with open(self.config_file_path, 'r') as file:
             xml_file = file.read()
-        # reconfigure_job_xml = server.reconfig_job(self.job,xml_file)
         reconfigure_job_xml = self.server.reconfig_job(self.job,xml_file)
-        self.spinner.text = "Finished uploading"
-        sleep(0.05)
+        self.display("Finished uploading")
 
     def get_crumb(self):
         if self.url:
@@ -327,8 +289,8 @@ class Job() :
                 r = requests.get(crumb_url,auth=(self.jenkins_user, self.jenkins_password), verify=False)
                 response = r.json()
                 self.crumb=response["crumb"]
-                self.spinner.text = response["crumb"]
-                sleep(0.05) 
+                self.display(response["crumb"])
+
             except Exception as e:
                 print(f"\n\n Jenkins URL seems unavailable. Check if Jenkins is working! \n\n Error : {e} \n\n")             
         else:
@@ -337,8 +299,7 @@ class Job() :
 
     @staticmethod
     def trigger_build_request(self,build_url,params=None):
-        self.spinner.text = "Triggering a build via post @ "+ build_url
-        sleep(0.05)    
+        self.display("Triggering a build via post @ "+ build_url)
         headers =  {
                         "Jenkins-Crumb":self.crumb
                     }
@@ -370,8 +331,7 @@ class Job() :
             self.brand_new_job = False
         if build_request.status_code == 201:
             queue_url =  build_request.headers['location'] +  "api/json"
-            self.spinner.text = "Build is queued @ " + queue_url
-            sleep(0.05)
+            self.display("Build is queued @ " + queue_url)
         else:
             print("\n\nYour build somehow failed\n\n")
             print(build_request.status_code)
@@ -382,9 +342,7 @@ class Job() :
 
     def waiting_for_job_to_start(self, queue_url):
         # Poll till we get job number
-        # print("\nStarting polling for our job to start")
-        self.spinner.text = "\nStarting polling for our job to start"
-        sleep(0.05)
+        self.display("\nStarting polling for our job to start")
         timer = self.timer
         waiting_for_job = True 
         while waiting_for_job:
